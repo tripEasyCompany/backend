@@ -5,19 +5,43 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "pg_only": "docker compose --env-file .env.development up -d postgres",
+    "start_dev": "docker compose --env-file .env.development up  -d  --build",
+    "stop_dev": "docker compose --env-file .env.development stop",
+    "clean_dev": "docker compose --env-file .env.development down -v",
+    "start_prod": "docker compose --env-file .env.production up -d --build",
+    "stop_prod": "docker compose --env-file .env.production stop",
+    "clean_prod": "docker compose --env-file .env.production down -v",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.9",
     "express": "^4.21.2",
+    "firebase-admin": "^13.3.0",
+    "formidable": "^3.5.4",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "pg": "^8.15.5"
+    "pg": "^8.15.5",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^13.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.22"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.6.0",
     "nodemon": "^3.0.1"
   },
   "repository": {

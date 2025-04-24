@@ -1,12 +1,19 @@
 const express = require('express');
+const cors = require('cors');
 const { connectDB } = require('./config/database'); // 引入資料庫連線模組
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中介軟體 (Middleware)
+app.use(cors());
 app.use(express.json()); // 用於解析 JSON 請求
 app.use(express.urlencoded({ extended: true })); // 用於解析 URL 編碼的請求
+
+// 健康檢查路由（供 docker healthcheck 使用）
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK' });
+});
 
 // 基本路由
 app.get('/', (req, res) => {
