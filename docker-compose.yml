@@ -1,49 +1,83 @@
 services:
-  api:
-    build:
-      context: .
-      args:
-        - PORT=${PORT}
-    container_name: node_api_app
-    ports:
-      - "${PORT}:${PORT}"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=${NODE_ENV}
-      - PORT=${PORT}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # api:
+  #   build:
+  #     context: .
+  #     args:
+  #       - PORT=${PORT}
+  #   container_name: node_api_app
+  #   ports:
+  #     - "${PORT}:${PORT}"
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - NODE_ENV=${NODE_ENV}
+  #     - PORT=${PORT}
+  #     - DB_HOST=${DB_HOST}
+  #     - DB_PORT=${DB_PORT}
+  #     - DB_USER=${DB_USER}
+  #     - DB_PASSWORD=${DB_PASSWORD}
+  #     - DB_NAME=${DB_NAME}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:${PORT}/api/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
 
+  # ① 資料庫容器 (Postgres)
   postgres:
-    image: postgres:15
+    image: postgres:${POSTGRES_VERSION}
     container_name: postgres_db
+    volumes:
+      - ./pgdb-data:/var/lib/postgresql/data
+    networks:
+      tripeasy_net:
+        ipv4_address: 172.18.0.11
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      - POSTGRES_DB=${POSTGRES_DB_NAME}        # 指定資料庫名稱
+      - POSTGRES_USER=${POSTGRES_DB_USER}      # 指定使用者
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD} # 指定密碼
+    # 加上 Healthcheck，確保 DB 完全啟動
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DB_USER} -d ${POSTGRES_DB_NAME}"]
       interval: 10s
-      timeout: 3s
+      # timeout: 3s
       retries: 3
+    restart: unless-stopped
 
-volumes:
-  pgdata:
+  # ② Migration 容器 (Flyway)
+  migrate:
+    image: flyway/flyway:10
+    depends_on:
+      postgres:
+        condition: service_healthy    # 必須 db 健康才執行 migrate
+    entrypoint: ["flyway"]
+    command:
+      - "-url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_NAME}"
+      - "-user=${POSTGRES_DB_USER}"
+      - "-password=${POSTGRES_DB_PASSWORD}"
+      - "-baselineOnMigrate=true"
+      - "-locations=filesystem:/flyway/sql"
+      - "migrate"
+    volumes:
+      - ./migrations:/flyway/sql:ro
+    networks:
+      tripeasy_net:
+        ipv4_address: 172.18.0.20
+    restart: "no"                     # 執行完 migration 自動結束
+    # ❌ profiles: ["tools"] 刪除！→這樣 migrate 會跟著 up 啟動
+
+# 區塊二：networks
+networks:
+  tripeasy_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
