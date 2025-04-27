@@ -73,6 +73,37 @@ services:
     restart: "no"                     # 執行完 migration 自動結束
     # ❌ profiles: ["tools"] 刪除！→這樣 migrate 會跟著 up 啟動
 
+  # ③ api 容器 (Node.js)
+  api:
+    build:
+      context: .
+    container_name: node_api_app
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - .:/usr/backend       # 🔥 綁到 /usr/src/backend
+      - /usr/backend/node_modules     # 🔥 避免覆蓋 node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT}
+      - DB_HOST=postgres
+      - DB_PORT=${POSTGRES_DB_PORT}
+      - DB_USER=${POSTGRES_DB_USER}
+      - DB_PASSWORD=${POSTGRES_DB_PASSWORD}
+      - DB_NAME=${POSTGRES_DB_NAME}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      tripeasy_net:
+        ipv4_address: 172.18.0.30
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
 # 區塊二：networks
 networks:
   tripeasy_net:
