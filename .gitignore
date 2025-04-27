@@ -79,3 +79,6 @@ local.*
 # 其他常忽略檔案
 .DS_Store
 Thumbs.db
+
+# 自訂義的 DB volumne 不要被git紀錄
+/pgdb-data/
