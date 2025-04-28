@@ -71,8 +71,8 @@ CREATE TABLE "tour" (
     status SMALLINT NOT NULL,  -- 1: 上架, 2: 下架
     title VARCHAR(255) NOT NULL,
     slogan VARCHAR(255) NOT NULL,
-    tour_start_date TIMESTAMP NOT NULL,
-    tour_end_date TIMESTAMP NOT NULL,
+    tour_start_date TIMESTAMP NULL,
+    tour_end_date TIMESTAMP NULL,
     days INT NOT NULL,
     price int NOT NULL,
     country VARCHAR(100) NOT NULL,
@@ -328,9 +328,9 @@ CREATE TABLE "payment" (
 CREATE TABLE "review" (
     review_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-    tour_id UUID NOT NULL,
-    avg_rating INT NOT NULL,
+    tour_id UUID NULL,
     type VARCHAR(50) NOT NULL,  -- 範例：web / travel / hotel / food / spot
+    hashtag VARCHAR(100) null,
     rating INT NOT NULL DEFAULT 1,
     content TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
