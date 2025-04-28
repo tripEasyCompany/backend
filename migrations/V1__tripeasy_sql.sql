@@ -66,8 +66,8 @@ CREATE TABLE "coupon" (
 ---- 5. 旅遊項目資料 "tour"
 CREATE TABLE "tour" (
     tour_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    type VARCHAR(100) NOT NULL,
-    item VARCHAR(100) NOT NULL,
+    type VARCHAR(100) NOT NULL, --  tourgroup、backpacker
+    item VARCHAR(100) NOT NULL, -- travel、food、spot、hotel
     status SMALLINT NOT NULL,  -- 1: 上架, 2: 下架
     title VARCHAR(255) NOT NULL,
     slogan VARCHAR(255) NOT NULL,
@@ -248,7 +248,7 @@ CREATE TABLE "cart" (
 
 
 
----- 16. 購物車細項資料 "cart"
+---- 16. 購物車細項資料 "cart_item"
 CREATE TABLE "cart_item" (
     cart_item_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     cart_id UUID NOT NULL,
@@ -283,7 +283,7 @@ CREATE TABLE "orders" (
 
 
 
----- 18. 訂單細項資料 "orders"
+---- 18. 訂單細項資料 "order_item"
 CREATE TABLE "order_item" (
     order_item_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_id UUID NOT NULL,
@@ -358,7 +358,7 @@ CREATE TABLE "hidden_play" (
 
 
 
----- 22. 自動設定資料 ""
+---- 22. 自動設定資料 "auto_setting"
 CREATE TABLE "auto_setting" (
     auto_setting_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
@@ -391,7 +391,7 @@ CREATE TABLE "favorite" (
 CREATE TABLE "point_record" (
     point_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-    order_id UUID NOT NULL,
+    order_id UUID NULL,
     type VARCHAR(50) NOT NULL, 
     point INT NOT NULL, 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -406,7 +406,7 @@ CREATE TABLE "point_record" (
 CREATE TABLE "user_coupon" (
     user_coupon_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-    order_id UUID NOT NULL,
+    order_id UUID NULL,
     coupon_id UUID NOT NULL,
     status SMALLINT NOT NULL, -- 1 = 使用, 0 = 未使用
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
