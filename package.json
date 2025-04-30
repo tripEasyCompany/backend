@@ -5,13 +5,10 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "pg_only": "docker compose --env-file .env.development up -d postgres",
-    "start_dev": "docker compose --env-file .env.development up  -d  --build",
-    "stop_dev": "docker compose --env-file .env.development stop",
-    "clean_dev": "docker compose --env-file .env.development down -v",
-    "start_prod": "docker compose --env-file .env.production up -d --build",
-    "stop_prod": "docker compose --env-file .env.production stop",
-    "clean_prod": "docker compose --env-file .env.production down -v",
+    "start_dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.example --profile tools up -d",
+    "clean_dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.example --profile tools down",
+    "start_prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d",
+    "clean_prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down ",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js"
   },
