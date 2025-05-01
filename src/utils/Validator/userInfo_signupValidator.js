@@ -1,4 +1,3 @@
-// validators/userInfoValidator.js
 const Joi = require('joi');
 
 // 只允許中英數、不得含特殊符號與空白（2~5字）

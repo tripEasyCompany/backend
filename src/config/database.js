@@ -6,26 +6,22 @@ const { Pool } = require('pg');
 
 const env = process.env.NODE_ENV || 'development';
 
-const localEnvPath = path.resolve(__dirname, '../../.env.local');
 const envPath = path.resolve(__dirname, `../../.env.${env}`);
-const defaultEnv = path.resolve(__dirname, '../../.env');
+const defaultEnv = path.resolve(__dirname, '../../.env.example');
 
 // ─── 環境變數檔案整理 ─────────────────────────────────────
-if (env === 'development' && fs.existsSync(localEnvPath)) {
-  dotenv.config({ path: localEnvPath });
-  console.log('✅ 使用 .env.local（本機開發環境）');
-} else if (fs.existsSync(envPath)) {
+if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
   console.log(`✅ 使用 ${envPath}`);
 } else if (fs.existsSync(defaultEnv)) {
   dotenv.config({ path: defaultEnv });
-  console.log('✅ 使用預設 .env');
+  console.log('✅ 使用預設 .env.example');
 } else {
   console.warn('⚠️ 未找到任何環境變數檔案');
 }
 
 // ─── PostgreSQL 驗證必要環境變數 ─────────────────────────────────────
-const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
+const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'JWT_SECRET' ];
 requiredEnvVars.forEach((varName) => {
   if (!process.env[varName]) {
     console.error(`❌ 缺少必要環境變數: ${varName}`);

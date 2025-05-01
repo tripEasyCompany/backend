@@ -22,8 +22,11 @@ app.get('/', (req, res) => {
   res.send('伺服器運行中');
 });
 
-app.use(`/api/${version}`, healthRouter);  // 健康檢查
-app.use(`/api/${version}/auth/userinfo`, userinfoRouter); // 登入註冊驗證、個人基本資料
+// 健康檢查
+app.use(`/api/${version}`, healthRouter);  
+
+// 編號 01~13 : 登入註冊驗證、個人基本資料
+app.use(`/api/${version}/auth/userinfo`, userinfoRouter); 
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {

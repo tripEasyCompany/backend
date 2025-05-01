@@ -4,7 +4,8 @@ module.exports = function resStatus({res,status,dbdata =[],message = ""}){
     switch (status){
       case 200:
       case 201:
-        data.status = "success"
+        data.status = "success";
+        data.message = message;
         if(dbdata.length !== 0){
           data.data = dbdata;
         }
@@ -18,6 +19,8 @@ module.exports = function resStatus({res,status,dbdata =[],message = ""}){
         data.message = message;
         break;
       case 400:
+      case 401:
+      case 403:
       case 409:
         data.status = "failed"
         data.message = message;
