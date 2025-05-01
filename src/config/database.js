@@ -1,4 +1,4 @@
-// src/config/database.js
+
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
@@ -10,7 +10,7 @@ const localEnvPath = path.resolve(__dirname, '../../.env.local');
 const envPath = path.resolve(__dirname, `../../.env.${env}`);
 const defaultEnv = path.resolve(__dirname, '../../.env');
 
-// === 載入環境變數（優先順序）===
+// ─── 環境變數檔案整理 ─────────────────────────────────────
 if (env === 'development' && fs.existsSync(localEnvPath)) {
   dotenv.config({ path: localEnvPath });
   console.log('✅ 使用 .env.local（本機開發環境）');
@@ -24,7 +24,7 @@ if (env === 'development' && fs.existsSync(localEnvPath)) {
   console.warn('⚠️ 未找到任何環境變數檔案');
 }
 
-// 驗證必要環境變數
+// ─── PostgreSQL 驗證必要環境變數 ─────────────────────────────────────
 const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
 requiredEnvVars.forEach((varName) => {
   if (!process.env[varName]) {
@@ -33,7 +33,7 @@ requiredEnvVars.forEach((varName) => {
   }
 });
 
-// 建立 PostgreSQL 連線池
+// ─── PostgreSQL 連線必要參數 ─────────────────────────────────────
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -43,7 +43,7 @@ const pool = new Pool({
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
-// 測試連線用
+// ─── PostgreSQL 連線狀態 ─────────────────────────────────────
 const connectDB = async () => {
   try {
     const client = await pool.connect();

@@ -1,34 +1,64 @@
 const express = require('express');
 const cors = require('cors');
-const { connectDB } = require('./config/database'); // 引入資料庫連線模組
-const healthRouter = require('./routes/health'); // 引入健康檢查路由模組
+const path = require('path');
+const { connectDB } = require('./config/database'); 
+
+// 載入路由
+const healthRouter = require('./routes/health'); 
+const userinfoRouter = require('./routes/userinfo'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const version = 'v1';
 
-// 中介軟體 (Middleware)
+// ─── Middleware ─────────────────────────────────────
 app.use(cors());
-app.use(express.json()); // 用於解析 JSON 請求
-app.use(express.urlencoded({ extended: true })); // 用於解析 URL 編碼的請求
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 健康檢查路由（供 docker healthcheck 使用）
-app.use('/api', healthRouter); // 將健康檢查路由掛載到 /api 前綴下
-
-// 基本路由
+// ─── 路由設定 ───────────────────────────────────────
 app.get('/', (req, res) => {
   res.send('伺服器運行中');
 });
 
-// 啟動伺服器並連接資料庫
+app.use(`/api/${version}`, healthRouter);  // 健康檢查
+app.use(`/api/${version}/auth/userinfo`, userinfoRouter); // 登入註冊驗證、個人基本資料
+
+// ─── 404 處理 ───────────────────────────────────────
+app.use((req, res, next) => {
+  res.status(404).json({
+    status: 'false',
+    message: '找不到此網站'
+  });
+});
+
+// ─── 500 錯誤處理 ──────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('❌ 系統錯誤:', err);
+  if (err.status) {
+    res.status(err.status).json({
+      status: 'failed',
+      message: err.message || '伺服器內部錯誤',
+    });
+    return;
+  }
+  res.status(500).json({
+    status: 'error',
+    message: '伺服器錯誤'
+  });
+})
+
+// ─── 伺服器啟動 ───────────────────────────────────
 const startServer = async () => {
   try {
-    await connectDB(); // 嘗試連接資料庫
+    await connectDB(); 
     app.listen(PORT, () => {
       console.log(`伺服器已啟動，正在監聽埠號 ${PORT}`);
     });
   } catch (error) {
     console.error('伺服器啟動失敗:', error);
-    process.exit(1); // 結束程式
+    process.exit(1); 
   }
 };
 
