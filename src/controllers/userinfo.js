@@ -135,7 +135,7 @@ async function post_user_forgetPW(req, res, next){
         // 📬 發送 Email
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-        const resetUrl = `https:tripeasycompany.github.io/reset-password?token=${reset_token}`;
+        const resetUrl = `https://tripeasycompany.github.io/reset-password?token=${reset_token}`;
 
         await sgMail.send({
             to: email,
