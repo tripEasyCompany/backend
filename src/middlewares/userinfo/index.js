@@ -5,6 +5,7 @@ const { pool } = require('../../config/database');
 // 資料驗證相關模組
 const signupValidator = require("../../utils/Validator/userInfo_signupValidator.js");
 const loginValidator = require("../../utils/Validator/userInfo_loginValidator.js");
+const forgetPWValidator = require("../../utils/Validator/userInfo_forgetPWValidator.js");
 const preferenceNameToId = require('../../utils/preferenceMap');
 
 
@@ -123,7 +124,43 @@ async function postuserLoginEmail(req, res, next) {
     next();
 }
 
+// [POST] 編號 05 : 使用者忘記密碼
+async function postuserforgetPW(req, res, next) {
+    const { error, value } = forgetPWValidator.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+    
+    // [HTTP 400] 資料錯誤
+    if (error) {
+        const message = error.details[0]?.message || '欄位驗證錯誤';
+        resStatus({
+            res:res,
+            status:400,
+            message: message
+        });
+        return;
+    }
+
+    // [HTTP 404] 帳號密碼不存在
+    const {email} = value;
+    const emailData = await pool.query('SELECT * FROM public."user" where email = $1',[email]);
+    const user = emailData.rows[0];
+    if (!user) {
+        resStatus({
+            res:res,
+            status:404,
+            message: "帳號不存在。"
+        });
+        return;
+    }
+
+    req.body = value; // 保留乾淨資料
+    next();
+}
+
 module.exports = {
     postuserSignup,
-    postuserLoginEmail
+    postuserLoginEmail,
+    postuserforgetPW
 }

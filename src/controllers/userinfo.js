@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const sgMail = require('@sendgrid/mail');
 const resStatus = require('../utils/resStatus');
 
 const { pool } = require('../config/database');
@@ -89,7 +90,6 @@ async function post_user_LoginEmail(req, res, next){
         await client.query('COMMIT'); 
 
         // 簽發 JWT（依你專案調整）
-        console.log('JWT_SECRET =>', process.env.JWT_SECRET);
         const payload = { id: user.id };
         const token = jwt.sign( payload, process.env.JWT_SECRET,
                       { expiresIn: process.env.JWT_EXPIRES_DAY || '30d'});
@@ -119,7 +119,53 @@ async function post_user_LoginEmail(req, res, next){
 
 }
 
+// [POST] 編號 05 : 使用者忘記密碼
+async function post_user_forgetPW(req, res, next){
+    const {email} = req.body;
+
+    try{
+        // 簽發 JWT（依你專案調整）
+        const emailData = await pool.query('SELECT * FROM public."user" where email = $1',[email]);
+        const user = emailData.rows[0];
+
+        const payload = { id: user.id,email: user.email };
+        const reset_token = jwt.sign( payload, process.env.JWT_SECRET,
+                      { expiresIn: '15m' });
+                      
+        // 📬 發送 Email
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+        const resetUrl = `https:tripeasycompany.github.io/reset-password?token=${reset_token}`;
+
+        await sgMail.send({
+            to: email,
+            from: process.env.SENDGRID_FROM_EMAIL,
+            subject: 'TripEasy 密碼重設連結',
+            html: `
+                <p>您好，親愛的用戶 : </p><br>
+                <p>請於 15 分鐘內點擊以下連結以重設密碼：</p>
+                <a href="${resetUrl}">${resetUrl}</a>
+                <p>若您未曾申請重設密碼，請忽略此信件，謝謝。</p>
+            `
+        });
+
+        // [HTTP 200] 呈現資料
+        resStatus({
+            res:res,
+            status:200,
+            message:"連結寄送成功"
+        });
+
+    }catch(error){
+        // [HTTP 500] 伺服器異常
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+    }
+
+}
+
 module.exports = {
     post_user_SignUp,
-    post_user_LoginEmail
+    post_user_LoginEmail,
+    post_user_forgetPW
 }
