@@ -3,15 +3,13 @@ const resStatus = require('../../utils/resStatus.js');
 const { pool } = require('../../config/database');
 
 // 資料驗證相關模組
-const signupValidator = require("../../utils/Validator/userInfo_signupValidator.js");
-const loginValidator = require("../../utils/Validator/userInfo_loginValidator.js");
-const forgetPWValidator = require("../../utils/Validator/userInfo_forgetPWValidator.js");
+const userInfo_Validator = require("../../utils/Validator/userInfo_Validator.js");
 const preferenceNameToId = require('../../utils/preferenceMap');
 
 
 // [POST] 編號 01 : 使用者註冊、個人偏好設定
 async function postuserSignup(req, res, next) {
-    const { error, value } = signupValidator.validate(req.body, {
+    const { error, value } = userInfo_Validator.registerSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
     });
@@ -57,7 +55,7 @@ async function postuserSignup(req, res, next) {
 
 // [POST] 編號 02 : 使用者登入 - Email 登入
 async function postuserLoginEmail(req, res, next) {
-    const { error, value } = loginValidator.validate(req.body, {
+    const { error, value } = userInfo_Validator.loginSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
     });
@@ -124,9 +122,15 @@ async function postuserLoginEmail(req, res, next) {
     next();
 }
 
+// [POST] 編號 03 : 使用者登入 - Google 登入
+
+
+// [POST] 編號 04 : 使用者登入 - FB 登入
+
+
 // [POST] 編號 05 : 使用者忘記密碼
 async function postuserforgetPW(req, res, next) {
-    const { error, value } = forgetPWValidator.validate(req.body, {
+    const { error, value } = userInfo_Validator.forgotPasswordSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
     });
@@ -158,6 +162,17 @@ async function postuserforgetPW(req, res, next) {
     req.body = value; // 保留乾淨資料
     next();
 }
+
+// [PATCH] 編號 06 : 使用者密碼修改
+
+
+// [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
+
+
+// [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
+
+// [GET] 編號 09 : 驗證使用者登入狀態
+
 
 module.exports = {
     postuserSignup,

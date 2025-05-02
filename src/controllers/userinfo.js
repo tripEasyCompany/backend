@@ -119,6 +119,12 @@ async function post_user_LoginEmail(req, res, next){
 
 }
 
+// [POST] 編號 03 : 使用者登入 - Google 登入
+
+
+// [POST] 編號 04 : 使用者登入 - FB 登入
+
+
 // [POST] 編號 05 : 使用者忘記密碼
 async function post_user_forgetPW(req, res, next){
     const {email} = req.body;
@@ -163,6 +169,17 @@ async function post_user_forgetPW(req, res, next){
     }
 
 }
+
+// [PATCH] 編號 06 : 使用者密碼修改
+
+
+// [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
+
+
+// [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
+
+// [GET] 編號 09 : 驗證使用者登入狀態
+
 
 module.exports = {
     post_user_SignUp,
