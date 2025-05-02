@@ -14,6 +14,7 @@ const collectionController = {
                 "status" : "failed",
 	            "message" : "欄位未填寫正確"
             })
+            return;
         }
 
         //TODO取資料庫資料
@@ -33,8 +34,8 @@ const collectionController = {
     // [POST] 使用者加入收藏項目
     async post_collection(req, res, next){
         const { tour_id } = req.params;
-
-        if(isValid.isUndefined(tour_id) || isValid.isNotValidInteger(tour_id)){ 
+        const { user_id } = req.user;
+        if(isValid.isUndefined(tour_id) || isValid.isNotValidString(tour_id)){ 
             res.status(400).json({
                 "status" : "failed",
                 "message" : "欄位未填寫正確"
@@ -42,7 +43,7 @@ const collectionController = {
             return;
         }
 
-        const result = await pool.query('SELECT * FROM tour WHERE id = $1', [tour_id]);
+        const result = await pool.query('SELECT * FROM tour WHERE tour_id = $1', [tour_id]);
         if(result.rows.length === 0){
             res.status(400).json({
                 "status" : "failed",
