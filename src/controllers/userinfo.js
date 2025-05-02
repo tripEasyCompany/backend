@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail');
+const svgCaptcha = require('svg-captcha');
 
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
@@ -213,7 +214,7 @@ async function post_user_forgetPW(req, res, next){
         // 📬 發送 Email
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-        const resetUrl = `https://tripeasycompany.github.io/reset-password?token=${reset_token}`;
+        const resetUrl = `http://127.0.0.1:5500/reset-password.html?token=${reset_token}`;
 
         await sgMail.send({
             to: email,
@@ -261,9 +262,31 @@ async function patch_user_resetPW(req, res, next){
 }
 
 // [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
+async function get_user_captcha(req, res, next){
 
+    try{
+        const captcha = svgCaptcha.create({
+            size: 5,
+            noise: 3,
+            color: false,
+            background: '#eee'
+        });
+
+        // 將驗證碼存在 cookie，5 分鐘內有效
+        res.cookie('captcha', captcha.text, { maxAge: 5 * 60 * 1000, httpOnly: true });
+        res.type('svg');
+        res.send(captcha.data);
+    
+    }catch(error){
+        // [HTTP 500] 伺服器異常
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+    }
+
+}
 
 // [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
+
 
 // [GET] 編號 09 : 驗證使用者登入狀態
 
@@ -273,5 +296,6 @@ module.exports = {
     post_user_LoginEmail,
     post_user_LoginGoogle,
     post_user_forgetPW,
-    patch_user_resetPW
+    patch_user_resetPW,
+    get_user_captcha
 }

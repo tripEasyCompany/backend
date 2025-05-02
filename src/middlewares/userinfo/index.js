@@ -235,7 +235,7 @@ async function patchuserresetPW(req, res, next) {
         return;
     }
 
-    const {token,new_password} = value;
+    const {token,new_password,input} = value;
     let decoded;
 
     // [HTTP 400] Token 資料錯誤、無效或過期
@@ -246,6 +246,27 @@ async function patchuserresetPW(req, res, next) {
             res:res,
             status:400,
             message: "Token 資料錯誤、無效或過期"
+        });
+        return;
+    }
+
+    // [HTTP 400] 驗證碼已過期
+    const stored = req.cookies.captcha;
+    if (!stored) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "驗證碼已過期"
+        });
+        return;
+    }
+
+    // [HTTP 400] 驗證碼錯誤
+    if (stored.toLowerCase() !== input.toLowerCase()) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "驗證碼錯誤"
         });
         return;
     }
@@ -270,9 +291,10 @@ async function patchuserresetPW(req, res, next) {
 }
 
 // [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
-
+// 無
 
 // [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
+
 
 // [GET] 編號 09 : 驗證使用者登入狀態
 
