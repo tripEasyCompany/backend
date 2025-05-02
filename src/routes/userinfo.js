@@ -12,10 +12,10 @@ router.post('/signup', mw.postuserSignup, controller.post_user_SignUp);
 router.post('/login/email',mw.postuserLoginEmail,controller.post_user_LoginEmail);
 
 // [POST] 編號 03 : 使用者登入 - Google 登入
-
+router.post('/login/google',mw.postuserLoginGoogle,controller.post_user_LoginGoogle);
 
 // [POST] 編號 04 : 使用者登入 - FB 登入
-
+router.post('/login/facebook');
 
 // [POST] 編號 05 : 使用者忘記密碼
 router.post('/forgetpw',mw.postuserforgetPW, controller.post_user_forgetPW);

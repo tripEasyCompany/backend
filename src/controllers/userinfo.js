@@ -1,9 +1,8 @@
-const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail');
-const resStatus = require('../utils/resStatus');
 
+const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
 
 // [POST] 編號 01 : 使用者註冊、個人偏好設定
@@ -120,7 +119,80 @@ async function post_user_LoginEmail(req, res, next){
 }
 
 // [POST] 編號 03 : 使用者登入 - Google 登入
+async function post_user_LoginGoogle(req, res, next){
+    const {code} = req.body;
+    const {googleUser,access_token} = req.user;
+    const email = googleUser.email;
 
+    let client;
+    try{
+        const emailData = await pool.query('SELECT * FROM public."user" where email = $1',[email]);
+        const userData = emailData.rows[0];
+
+        // 第一次用第三方登入進行登入
+        if(!userData){
+            const salt = await bcrypt.genSalt(10);
+            const databasePassword = await bcrypt.hash('Aa123456', salt);
+
+            client = await pool.connect(); 
+            // 上傳數據
+            await client.query('BEGIN'); 
+
+            const userResult = await client.query(
+                'INSERT INTO public."user" (name, email, role, password,avatar_url,login_method) VALUES ($1, $2, $3, $4,$5,$6) RETURNING *',
+                [googleUser.name, email, "User", databasePassword,googleUser.picture,2 ]
+            );
+            const user = userResult.rows[0];
+    
+            const levelResult = await client.query(
+                'INSERT INTO public."user_level" (user_id,level,name,badge_url,travel_point) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [user.user_id, "Level 1", "初心旅人", "https://example.com/badges/level1.png", 0 ]
+            );
+            const level = levelResult.rows[0];
+    
+            const pointResult = await client.query(
+                'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3) RETURNING *',
+                [user.user_id, "新增", 0 ]
+            );
+
+            const socialLoginResult = await client.query(
+                'INSERT INTO public."socialLogin" (user_id, provider_method, provider_id, provider_token) VALUES ($1, $2, $3, $4) RETURNING *',
+                [user.user_id, 'google', code, access_token ]
+            );
+
+            await client.query('COMMIT'); 
+        }
+
+        // 簽發 JWT（依你專案調整）
+        const user = await pool.query('SELECT * FROM public."user" where email = $1',[email]);
+        const payload = { id: user.user_id };
+        const token = jwt.sign( payload, process.env.JWT_SECRET,
+                      { expiresIn: process.env.JWT_EXPIRES_DAY || '30d'});
+
+        resStatus({
+            res:res,
+            status:200,
+            message:"登入成功",
+            dbdata:{ 
+                token : token,
+                user: {
+                    id : user.user_id,
+                    name : user.name,
+                    email : user.email
+                }
+            }
+        });
+    
+    }catch(error){
+        // [HTTP 500] 伺服器異常
+        if (client) await client.query('ROLLBACK');
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+    }finally {
+        if (client) client.release();
+    }
+
+}
 
 // [POST] 編號 04 : 使用者登入 - FB 登入
 
@@ -199,6 +271,7 @@ async function patch_user_resetPW(req, res, next){
 module.exports = {
     post_user_SignUp,
     post_user_LoginEmail,
+    post_user_LoginGoogle,
     post_user_forgetPW,
     patch_user_resetPW
 }
