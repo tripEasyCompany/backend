@@ -83,14 +83,14 @@ async function post_user_LoginEmail(req, res, next){
         const user = emailData.rows[0];
         // 登入成功後，清除鎖住功能
         await pool.query(
-            'UPDATE public."user" SET login_attempts = 0, locked_datetime = null WHERE user_id = $1',
+            'UPDATE public."user" SET login_attempts = 0, locked_datetime = null, login_method = 1 WHERE user_id = $1',
             [user.user_id]
         );
 
         await client.query('COMMIT'); 
 
         // 簽發 JWT（依你專案調整）
-        const payload = { id: user.id };
+        const payload = { id: user.user_id };
         const token = jwt.sign( payload, process.env.JWT_SECRET,
                       { expiresIn: process.env.JWT_EXPIRES_DAY || '30d'});
 
@@ -125,7 +125,7 @@ async function post_user_LoginEmail(req, res, next){
 // [POST] 編號 04 : 使用者登入 - FB 登入
 
 
-// [POST] 編號 05 : 使用者忘記密碼
+// [POST] 編號 05 : 使用者忘記密碼 ( 修改密碼畫面 )
 async function post_user_forgetPW(req, res, next){
     const {email} = req.body;
 
@@ -134,7 +134,7 @@ async function post_user_forgetPW(req, res, next){
         const emailData = await pool.query('SELECT * FROM public."user" where email = $1',[email]);
         const user = emailData.rows[0];
 
-        const payload = { id: user.id,email: user.email };
+        const payload = { id: user.user_id };
         const reset_token = jwt.sign( payload, process.env.JWT_SECRET,
                       { expiresIn: '15m' });
                       
@@ -171,7 +171,22 @@ async function post_user_forgetPW(req, res, next){
 }
 
 // [PATCH] 編號 06 : 使用者密碼修改
+async function patch_user_resetPW(req, res, next){
+    try{
+        // [HTTP 200] 呈現資料
+        resStatus({
+            res:res,
+            status:200,
+            message:"密碼修改成功"
+        });
 
+    }catch(error){
+        // [HTTP 500] 伺服器異常
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+    }
+
+}
 
 // [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
 
@@ -184,5 +199,6 @@ async function post_user_forgetPW(req, res, next){
 module.exports = {
     post_user_SignUp,
     post_user_LoginEmail,
-    post_user_forgetPW
+    post_user_forgetPW,
+    patch_user_resetPW
 }

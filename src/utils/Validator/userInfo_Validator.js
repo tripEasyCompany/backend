@@ -27,6 +27,22 @@ const baseSchema = Joi.object({
         'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
         'any.required': '「密碼」為必填欄位',
       }),
+
+    new_password : Joi.string()
+      .pattern(passwordPattern)
+      .messages({
+        'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
+        'any.required': '「新密碼」為必填欄位',
+      }),
+
+    confirm_password : Joi.string()
+      .pattern(passwordPattern)
+      .valid(Joi.ref('new_password'))
+      .messages({
+        'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
+        'any.only': '新密碼與驗證密碼不一致',
+        'any.required': '「驗證密碼」為必填欄位',
+      }),
   
     preference: Joi.array()
       .items(Joi.string())
@@ -41,9 +57,12 @@ const baseSchema = Joi.object({
 const loginSchema = baseSchema.fork(['email', 'password'], field => field.required());
 const registerSchema = baseSchema.fork(['name', 'email', 'password','preference'], field => field.required());
 const forgotPasswordSchema = baseSchema.fork(['email'], field => field.required());
+const resetPasswordSchema = baseSchema.fork(['new_password','confirm_password'], field => field.required())
+                                      .unknown(true);
 
 module.exports ={
   loginSchema,
   registerSchema,
-  forgotPasswordSchema
+  forgotPasswordSchema,
+  resetPasswordSchema
 };

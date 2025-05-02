@@ -20,8 +20,8 @@ router.post('/login/email',mw.postuserLoginEmail,controller.post_user_LoginEmail
 // [POST] 編號 05 : 使用者忘記密碼
 router.post('/forgetpw',mw.postuserforgetPW, controller.post_user_forgetPW);
 
-// [PATCH] 編號 06 : 使用者密碼修改
-router.patch('/resetpw');
+// [PATCH] 編號 06 : 使用者密碼修改 ( 修改密碼畫面 )
+router.patch('/resetpw',mw.patchuserresetPW,controller.patch_user_resetPW);
 
 // [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
 

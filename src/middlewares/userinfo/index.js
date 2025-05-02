@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const resStatus = require('../../utils/resStatus.js');
 const { pool } = require('../../config/database');
 
@@ -163,8 +164,57 @@ async function postuserforgetPW(req, res, next) {
     next();
 }
 
-// [PATCH] 編號 06 : 使用者密碼修改
+// [PATCH] 編號 06 : 使用者密碼修改 ( 修改密碼畫面 )
+async function patchuserresetPW(req, res, next) {
+    const { error, value } = userInfo_Validator.resetPasswordSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: false,
+    });
+    
+    // [HTTP 400] 資料錯誤
+    if (error) {
+        const message = error.details[0]?.message || '欄位驗證錯誤';
+        resStatus({
+            res:res,
+            status:400,
+            message: message
+        });
+        return;
+    }
 
+    const {token,new_password} = value;
+    let decoded;
+
+    // [HTTP 400] Token 資料錯誤、無效或過期
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "Token 資料錯誤、無效或過期"
+        });
+        return;
+    }
+
+    const user = decoded;
+    const salt = await bcrypt.genSalt(10);
+    const databasePassword = await bcrypt.hash(new_password, salt);
+    const userData = await pool.query('UPDATE public."user" SET password = $1 WHERE user_id = $2',[databasePassword,user.id]);
+    
+    // [HTTP 400] 密碼更新失敗
+    if(userData.rowCount === 0){
+        resStatus({
+            res:res,
+            status:400,
+            message: "密碼更新失敗"
+        });
+        return;
+    }
+
+    req.body = value; // 保留乾淨資料
+    next();
+}
 
 // [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
 
@@ -177,5 +227,6 @@ async function postuserforgetPW(req, res, next) {
 module.exports = {
     postuserSignup,
     postuserLoginEmail,
-    postuserforgetPW
+    postuserforgetPW,
+    patchuserresetPW
 }
