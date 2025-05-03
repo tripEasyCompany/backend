@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
 // 健康檢查
 app.use(`/api/${version}`, healthRouter);  
 
-// 編號 01~13 : 登入註冊驗證、個人基本資料
+// 編號 01~09 : 登入註冊驗證
 app.use(`/api/${version}/auth/userinfo`, userinfoRouter); 
 
 // ─── 404 處理 ───────────────────────────────────────

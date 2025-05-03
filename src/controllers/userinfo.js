@@ -87,6 +87,12 @@ async function post_user_LoginEmail(req, res, next){
             [user.user_id]
         );
 
+        const levelResult = await pool.query(
+            'SELECT * FROM public."user_level" where user_id = $1',
+            [user.user_id]
+        );
+        const level = levelResult.rows[0];
+
         await client.query('COMMIT'); 
 
         // 簽發 JWT（依你專案調整）
@@ -104,7 +110,14 @@ async function post_user_LoginEmail(req, res, next){
                 user: {
                     id : user.user_id,
                     name : user.name,
-                    email : user.email
+                    email : user.email,
+                    avatar_url : user.picture
+                },
+                level : {
+                    level : level.level,
+                    name : level.name,
+                    points : level.travel_point,
+                    badge_url : level.badge_url
                 }
             }
         });
@@ -166,7 +179,8 @@ async function post_user_LoginGoogle(req, res, next){
 
         // 簽發 JWT（依你專案調整）
         const user = await pool.query('SELECT * FROM public."user" where email = $1',[email]);
-        const payload = { id: user.user_id };
+        const level = await pool.query('SELECT * FROM public."user_level" where user_id = $1',[user.rows[0].user_id]);
+        const payload = { id: user.rows[0].user_id };
         const token = jwt.sign( payload, process.env.JWT_SECRET,
                       { expiresIn: process.env.JWT_EXPIRES_DAY || '30d'});
 
@@ -177,9 +191,16 @@ async function post_user_LoginGoogle(req, res, next){
             dbdata:{ 
                 token : token,
                 user: {
-                    id : user.user_id,
-                    name : user.name,
-                    email : user.email
+                    id : user.rows[0].user_id,
+                    name : user.rows[0].name,
+                    email : user.rows[0].email,
+                    avatar_url : googleUser.picture
+                },
+                level : {
+                    level : level.rows[0].level,
+                    name : level.rows[0].name,
+                    points : level.rows[0].travel_point,
+                    badge_url : level.rows[0].badge_url
                 }
             }
         });
@@ -286,10 +307,43 @@ async function get_user_captcha(req, res, next){
 }
 
 // [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
-
+// 無
 
 // [GET] 編號 09 : 驗證使用者登入狀態
+async function get_user_loginStatus(req, res, next){
+    try{
+        const user = await pool.query('SELECT * FROM public."user" where user_id = $1',[req.user.id]);
+        const level = await pool.query('SELECT * FROM public."user_level" where user_id = $1',[user.rows[0].user_id]);
 
+        // [HTTP 200] 呈現資料
+        resStatus({
+            res:res,
+            status:200,
+            message:"登入中",
+            dbdata:{ 
+                "is_logged_in": true ,
+                user: {
+                    id : user.rows[0].user_id,
+                    name : user.rows[0].name,
+                    email : user.rows[0].email,
+                    avatar_url : user.rows[0].picture
+                },
+                level : {
+                    level : level.rows[0].level,
+                    name : level.rows[0].name,
+                    points : level.rows[0].travel_point,
+                    badge_url : level.rows[0].badge_url
+                }
+            }
+        });
+
+    }catch(error){
+        // [HTTP 500] 伺服器異常
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+    }
+
+}
 
 module.exports = {
     post_user_SignUp,
@@ -297,5 +351,6 @@ module.exports = {
     post_user_LoginGoogle,
     post_user_forgetPW,
     patch_user_resetPW,
-    get_user_captcha
+    get_user_captcha,
+    get_user_loginStatus
 }

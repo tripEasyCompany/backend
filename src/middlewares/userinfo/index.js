@@ -294,9 +294,10 @@ async function patchuserresetPW(req, res, next) {
 // 無
 
 // [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
-
+// 無
 
 // [GET] 編號 09 : 驗證使用者登入狀態
+// 無
 
 
 module.exports = {
