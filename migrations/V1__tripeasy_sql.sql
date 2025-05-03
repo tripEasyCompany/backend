@@ -11,9 +11,9 @@ CREATE TABLE "user" (
     login_attempts smallint NULL, 
     locked_datetime TIMESTAMP WITH TIME zone NULL, 
     avatar_url VARCHAR(255) NULL,
-    preference1 smallint NOT NULL,
-    preference2 smallint NOT NULL,
-    preference3 smallint NOT NULL,
+    preference1 smallint NULL,
+    preference2 smallint NULL,
+    preference3 smallint NULL,
     login_method smallint NULL, 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
