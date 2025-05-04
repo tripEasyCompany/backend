@@ -4,6 +4,7 @@ const controller = require('../controllers/userinfo');
 
 // middleware 的內容
 const mw = require('../middlewares/userinfo/index');
+const auth = require("../middlewares/auth");
 
 // [POST] 編號 01 : 使用者註冊、個人偏好設定
 router.post('/signup', mw.postuserSignup, controller.post_user_SignUp);
@@ -27,9 +28,9 @@ router.patch('/resetpw',mw.patchuserresetPW,controller.patch_user_resetPW);
 router.get('/captcha', controller.get_user_captcha);
 
 // [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
-
+// 無
 
 // [GET] 編號 09 : 驗證使用者登入狀態
-
+router.get('/login/status', auth, controller.get_user_loginStatus);
 
 module.exports = router;
