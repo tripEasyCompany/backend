@@ -15,6 +15,9 @@ COPY package*.json ./
 # 🔥 安裝所有依賴（包含 devDependencies）
 RUN npm install
 
+# 複製所有原始碼（包括 src/、routes/ 等）
+COPY . .
+
 ARG PORT=3000
 EXPOSE ${PORT}
 
