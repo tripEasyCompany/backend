@@ -24,6 +24,13 @@ const collectionController = {
             'SELECT * FROM favorite WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
             [user_id, limit, (page - 1) * limit]
         );
+        if(collectionRepo.rows.length === 0){
+            res.status(400).json({
+                "status" : "failed",
+                "message" : "查無此項目"
+            })
+            return;
+        }
 
         //送出結果 200
         res.status(200).json({
