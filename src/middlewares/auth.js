@@ -24,6 +24,7 @@ function verifyToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+    console.log('[Token payload]', decoded);  // <== 看看有沒有 id
     next();
 
   } catch (err) {

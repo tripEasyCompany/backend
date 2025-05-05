@@ -34,7 +34,7 @@ const collectionController = {
     // [POST] 使用者加入收藏項目
     async post_collection(req, res, next){
         const { tour_id } = req.params;
-        const { user_id } = req.user;
+        
         if(isValid.isUndefined(tour_id) || isValid.isNotValidString(tour_id)){ 
             res.status(400).json({
                 "status" : "failed",
@@ -52,11 +52,35 @@ const collectionController = {
             return;
         }
 
-        await pool.query('INSERT INTO favorite (user_id, tour_id) VALUES ($1, $2)', [user_id, tour_id]);
+        const user_id = req.user?.id;
+        if (!user_id) {
+            console.log(req.user.id);
+            console.log(req.user);
+            return res.status(401).json({
+                status: "failed",
+                message: "未登入或權限不足"
+            });
+        }
+
+        // ✅ 檢查是否已收藏
+        const favoriteCheck = await pool.query(
+            'SELECT 1 FROM favorite WHERE user_id = $1 AND tour_id = $2',
+            [user_id, tour_id]
+        );
+
+        if (favoriteCheck.rows.length > 0) {
+            return res.status(400).json({
+                status: "failed",
+                message: "已經收藏過此項目"
+            });
+        }
+
+        await pool.query('INSERT INTO favorite (user_id, tour_id) VALUES ($1, $2)', [req.user.id, tour_id]);
         res.status(200).json({
             "status" : "success",
             "message" : "新增成功",
         })
+        
     },
 
     // [DELETE] 使用者取消收藏項目
