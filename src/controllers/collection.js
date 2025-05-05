@@ -4,11 +4,13 @@ const { pool } = require('../config/database');
 const collectionController = {
     // [GET] 使用者查看收藏項目
     async get_collection(req, res, next){
-        //取URL內參數
+        //取參數
         const { lang, page, limit } = req.query;
+        const user_id = req.user.id;
+
         if(isValid.isUndefined(lang) || 
-        isValid.isUndefined(page) || isValid.isNotValidInteger(page) ||
-        isValid.isUndefined(limit) || isValid.isNotValidInteger(limit))
+        isValid.isUndefined(page) || isValid.isNotValidString(page) ||
+        isValid.isUndefined(limit) || isValid.isNotValidString(limit))
         {
             res.status(400).json({
                 "status" : "failed",
@@ -62,7 +64,7 @@ const collectionController = {
             });
         }
 
-        // ✅ 檢查是否已收藏
+        //檢查是否已收藏
         const favoriteCheck = await pool.query(
             'SELECT 1 FROM favorite WHERE user_id = $1 AND tour_id = $2',
             [user_id, tour_id]
@@ -85,9 +87,10 @@ const collectionController = {
 
     // [DELETE] 使用者取消收藏項目
     async delete_collection(req, res, next){
-        const { collection_id } = req.params;
+        const { favorite_id } = req.params;
+        const user_id = req.user.id;
 
-        if(isValid.isUndefined(collection_id) || isValid.isNotValidInteger(collection_id)){ 
+        if(isValid.isUndefined(favorite_id) || isValid.isNotValidString(favorite_id)){ 
             res.status(400).json({
                 "status" : "failed",
                 "message" : "欄位未填寫正確"
@@ -95,7 +98,7 @@ const collectionController = {
             return;
         }
 
-        const result = await pool.query('SELECT * FROM favorite WHERE user_id = $1 AND collection_id = $2', [user_id, collection_id]);
+        const result = await pool.query('SELECT * FROM favorite WHERE user_id = $1 AND favorite_id = $2', [user_id, favorite_id]);
         if(result.rows.length === 0){
             res.status(400).json({
                 "status" : "failed",
@@ -104,7 +107,7 @@ const collectionController = {
             return;
         }
 
-        await pool.query('DELETE FROM favorite WHERE user_id = $1 AND collection_id = $2', [user_id, collection_id]);
+        await pool.query('DELETE FROM favorite WHERE user_id = $1 AND favorite_id = $2', [user_id, favorite_id]);
         res.status(200).json({
             "status" : "success",
             "message" : "刪除成功",
