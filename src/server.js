@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const { connectDB } = require('./config/database'); 
 
@@ -12,8 +13,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const version = 'v1';
 
+// ─── 允許前端存取 cookie ─────────────────────────────────────
+const allowedOrigins = ['http://localhost:5500', 'http://127.0.0.1:5500'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('不允許的來源'));
+    }
+  },
+  credentials: true
+}));
+
 // ─── Middleware ─────────────────────────────────────
-app.use(cors());
+app.use(cookieParser());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -26,7 +40,7 @@ app.get('/', (req, res) => {
 // 健康檢查
 app.use(`/api/${version}`, healthRouter);  
 
-// 編號 01~13 : 登入註冊驗證、個人基本資料
+// 編號 01~09 : 登入註冊驗證
 app.use(`/api/${version}/auth/userinfo`, userinfoRouter); 
 
 // 編號  : 個人收藏

@@ -1,17 +1,18 @@
+const axios = require('axios');
+const qs = require('qs'); 
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const resStatus = require('../../utils/resStatus.js');
 const { pool } = require('../../config/database');
 
 // 資料驗證相關模組
-const signupValidator = require("../../utils/Validator/userInfo_signupValidator.js");
-const loginValidator = require("../../utils/Validator/userInfo_loginValidator.js");
-const forgetPWValidator = require("../../utils/Validator/userInfo_forgetPWValidator.js");
+const userInfo_Validator = require("../../utils/Validator/userInfo_Validator.js");
 const preferenceNameToId = require('../../utils/preferenceMap');
 
 
 // [POST] 編號 01 : 使用者註冊、個人偏好設定
 async function postuserSignup(req, res, next) {
-    const { error, value } = signupValidator.validate(req.body, {
+    const { error, value } = userInfo_Validator.registerSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
     });
@@ -57,7 +58,7 @@ async function postuserSignup(req, res, next) {
 
 // [POST] 編號 02 : 使用者登入 - Email 登入
 async function postuserLoginEmail(req, res, next) {
-    const { error, value } = loginValidator.validate(req.body, {
+    const { error, value } = userInfo_Validator.loginSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
     });
@@ -124,9 +125,66 @@ async function postuserLoginEmail(req, res, next) {
     next();
 }
 
+// [POST] 編號 03 : 使用者登入 - Google 登入
+async function postuserLoginGoogle(req, res, next) {
+    const {code} = req.body;
+
+    // [HTTP 400] 資料錯誤
+    if (!code){
+        resStatus({
+            res:res,
+            status:400,
+            message: "Code 欄位未填寫正確"
+        });
+        return;
+    } 
+
+    // 1. 用 code 換 access_token
+    const tokenRes = await axios.post('https://oauth2.googleapis.com/token',
+        qs.stringify({
+            code,
+            client_id: process.env.GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET,
+            redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+            grant_type: 'authorization_code',
+        }),
+        {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        }
+    );
+
+    // Step 2. 拿 user info
+    const { access_token } = tokenRes.data;
+    const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    const googleUser = userInfoRes.data;
+    // [HTTP 400] Google 帳號資訊異常
+    if (!googleUser || !googleUser.email) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "Google 帳號資訊異常，無法取得 email"
+        });
+        return;
+    }
+
+    req.user = {
+        googleUser,
+        access_token
+      };
+    next();
+}
+
+// [POST] 編號 04 : 使用者登入 - FB 登入
+
+
 // [POST] 編號 05 : 使用者忘記密碼
 async function postuserforgetPW(req, res, next) {
-    const { error, value } = forgetPWValidator.validate(req.body, {
+    const { error, value } = userInfo_Validator.forgotPasswordSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
     });
@@ -159,8 +217,93 @@ async function postuserforgetPW(req, res, next) {
     next();
 }
 
+// [PATCH] 編號 06 : 使用者密碼修改 ( 修改密碼畫面 )
+async function patchuserresetPW(req, res, next) {
+    const { error, value } = userInfo_Validator.resetPasswordSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: false,
+    });
+    
+    // [HTTP 400] 資料錯誤
+    if (error) {
+        const message = error.details[0]?.message || '欄位驗證錯誤';
+        resStatus({
+            res:res,
+            status:400,
+            message: message
+        });
+        return;
+    }
+
+    const {token,new_password,input} = value;
+    let decoded;
+
+    // [HTTP 400] Token 資料錯誤、無效或過期
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "Token 資料錯誤、無效或過期"
+        });
+        return;
+    }
+
+    // [HTTP 400] 驗證碼已過期
+    const stored = req.cookies.captcha;
+    if (!stored) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "驗證碼已過期"
+        });
+        return;
+    }
+
+    // [HTTP 400] 驗證碼錯誤
+    if (stored.toLowerCase() !== input.toLowerCase()) {
+        resStatus({
+            res:res,
+            status:400,
+            message: "驗證碼錯誤"
+        });
+        return;
+    }
+
+    const user = decoded;
+    const salt = await bcrypt.genSalt(10);
+    const databasePassword = await bcrypt.hash(new_password, salt);
+    const userData = await pool.query('UPDATE public."user" SET password = $1 WHERE user_id = $2',[databasePassword,user.id]);
+    
+    // [HTTP 400] 密碼更新失敗
+    if(userData.rowCount === 0){
+        resStatus({
+            res:res,
+            status:400,
+            message: "密碼更新失敗"
+        });
+        return;
+    }
+
+    req.body = value; // 保留乾淨資料
+    next();
+}
+
+// [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
+// 無
+
+// [POST] 編號 08 : 使用者登出 ( 以前端處理，不用開發 )
+// 無
+
+// [GET] 編號 09 : 驗證使用者登入狀態
+// 無
+
+
 module.exports = {
     postuserSignup,
     postuserLoginEmail,
-    postuserforgetPW
+    postuserLoginGoogle,
+    postuserforgetPW,
+    patchuserresetPW
 }
