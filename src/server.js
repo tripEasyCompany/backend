@@ -7,6 +7,7 @@ const { connectDB } = require('./config/database');
 // 載入路由
 const healthRouter = require('./routes/health'); 
 const userinfoRouter = require('./routes/userinfo'); 
+const userprofileRouter = require('./routes/userprofile');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,9 @@ app.use(`/api/${version}`, healthRouter);
 
 // 編號 01~09 : 登入註冊驗證
 app.use(`/api/${version}/auth/userinfo`, userinfoRouter); 
+
+// 編號10~13 : 個人基本資料
+app.use(`/api/${version}/user/userinfo`, userprofileRouter); 
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {
