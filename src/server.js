@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 const version = 'v1';
 
 // ─── 允許前端存取 cookie ─────────────────────────────────────
-const allowedOrigins = ['http://localhost:5500', 'http://127.0.0.1:5500'];
+const allowedOrigins = ['http://localhost:5500', 'http://127.0.0.1:5500','https://tripeasy-5hd1.onrender.com'];
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
