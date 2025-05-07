@@ -59,10 +59,13 @@ const registerSchema = baseSchema.fork(['name', 'email', 'password','preference'
 const forgotPasswordSchema = baseSchema.fork(['email'], field => field.required());
 const resetPasswordSchema = baseSchema.fork(['new_password','confirm_password'], field => field.required())
                                       .unknown(true);
+const resetprofilePasswordSchema = baseSchema.fork(['password','new_password','confirm_password'], field => field.required())
+
 
 module.exports ={
   loginSchema,
   registerSchema,
   forgotPasswordSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  resetprofilePasswordSchema
 };

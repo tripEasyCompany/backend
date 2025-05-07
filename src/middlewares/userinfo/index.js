@@ -290,6 +290,68 @@ async function patchuserresetPW(req, res, next) {
     next();
 }
 
+// [PATCH] 編號 06 : 使用者密碼修改 ( 個人畫面 )
+async function patchuserresetprofilePW(req, res, next) {
+    const { error, value } = userInfo_Validator.resetprofilePasswordSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+    
+    // [HTTP 400] 資料錯誤
+    if (error) {
+        const message = error.details[0]?.message || '欄位驗證錯誤';
+        resStatus({
+            res:res,
+            status:400,
+            message: message
+        });
+        return;
+    }
+
+    const {password,new_password,confirm_password} = value;
+    const user = await pool.query('SELECT * FROM public."user" where user_id = $1',[req.user.id]);
+
+    // [HTTP 400] 舊密碼輸入錯誤
+    const userData = user.rows[0];
+    const isMatch = await bcrypt.compare(password,userData.password);
+    if (!isMatch){
+        resStatus({
+            res:res,
+            status:400,
+            message: "舊密碼輸入錯誤"
+        });
+        return;
+    }
+
+    // [HTTP 400] 新密碼與舊密碼相同
+    const isMatch_newPw = await bcrypt.compare(new_password,userData.password);
+    if (isMatch_newPw){
+        resStatus({
+            res:res,
+            status:400,
+            message: "新密碼與舊密碼相同"
+        });
+        return;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const databasePassword = await bcrypt.hash(new_password, salt);
+    const userUpdateData = await pool.query('UPDATE public."user" SET password = $1 WHERE user_id = $2',[databasePassword,user.rows[0].user_id]);
+    
+    // [HTTP 400] 密碼更新失敗
+    if(userUpdateData.rowCount === 0){
+        resStatus({
+            res:res,
+            status:400,
+            message: "密碼更新失敗"
+        });
+        return;
+    }
+
+    req.body = value; // 保留乾淨資料
+    next();
+}
+
 // [GET] 編號 07 : 圖片、文字驗證碼判斷機器人
 // 無
 
@@ -305,5 +367,6 @@ module.exports = {
     postuserLoginEmail,
     postuserLoginGoogle,
     postuserforgetPW,
-    patchuserresetPW
+    patchuserresetPW,
+    patchuserresetprofilePW
 }
