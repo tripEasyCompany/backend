@@ -87,6 +87,12 @@ function isSDataEDataCompare(dateTime1, dateTime2) {
     return !(new Date(dateTime1.replace(" ", "T")) < new Date(dateTime2.replace(" ", "T")));
 }
 
+// 是否不為UUID格式
+function isUUIDParam(value){  
+    const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return !regex.test(value);   
+}
+
 // 資料欄位不符的迴圈 ( String )
 const validateFields_String = (fields) => {
     for (const [key, value] of Object.entries(fields)) {
@@ -144,5 +150,6 @@ module.exports = {
     validateFields_String,
     validateFields_Int,
     validateFields_Date,
-    validateFields_Password
+    validateFields_Password,
+    isUUIDParam
 }

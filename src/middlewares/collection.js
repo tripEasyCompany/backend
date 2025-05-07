@@ -18,17 +18,7 @@ async function getCollection(req, res, next){
         return;
     }
 
-    const resultCount = await pool.query('SELECT COUNT(*) FORM favorite WHERE user_id = $1', [user_id]);
-    const count = resultCount.rows[0].count;
-    console.log(resultCount);
-    console.log(count);
-    if((page - 1) * limit > count ){
-        res.status(400).json({
-            "status" : "failed",
-            "message" : "欄位未填寫正確"
-        })
-        return;
-    }
+    //???(當page, limit 超出資料庫範圍時)
 
     next();
 }
@@ -36,6 +26,7 @@ async function getCollection(req, res, next){
 // [POST] 編號 18 : 使用者加入收藏項目
 async function postCollection(req, res, next){
     const { tour_id } = req.params;
+    const user_id = req.user.id;
         
         if(isValid.isUndefined(tour_id) || isValid.isNotValidString(tour_id)){ 
             res.status(400).json({
@@ -73,8 +64,37 @@ async function postCollection(req, res, next){
 
 // [DELETE] 編號 19 : 使用者刪除收藏項目
 async function deleteCollection(req, res, next){
+    const { favorite_id } = req.params;
+    const user_id = req.user.id;
 
+    if(isValid.isUndefined(favorite_id) || isValid.isNotValidString(favorite_id)){ 
+        res.status(400).json({
+            "status" : "failed",
+            "message" : "欄位未填寫正確"
+        })
+        return;
+    }
+
+    if(isValid.isUUIDParam(favorite_id)){
+        res.status(400).json({
+            "status" : "failed",
+            "message" : "欄位未填寫正確"
+        })
+        return;
+    }
+
+    const result = await pool.query('SELECT * FROM favorite WHERE user_id = $1 AND favorite_id = $2', [user_id, favorite_id]);
+    if(result.rows.length === 0){
+        res.status(400).json({
+            "status" : "failed",
+            "message" : "查無此項目"
+        })
+        return;
+    }
     
+    
+
+    next(); 
 }
  module.exports = {
     getCollection,

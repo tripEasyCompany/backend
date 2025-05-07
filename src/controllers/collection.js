@@ -8,29 +8,11 @@ const collectionController = {
         const { lang, page, limit } = req.query;
         const user_id = req.user.id;
 
-        // if(isValid.isUndefined(lang) || 
-        // isValid.isUndefined(page) || isValid.isNotValidString(page) ||
-        // isValid.isUndefined(limit) || isValid.isNotValidString(limit))
-        // {
-        //     res.status(400).json({
-        //         "status" : "failed",
-	    //         "message" : "欄位未填寫正確"
-        //     })
-        //     return;
-        // }
-
-        //TODO取資料庫資料
+        //取資料庫資料
         const collectionRepo = await pool.query(
             'SELECT * FROM favorite WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
             [user_id, limit, (page - 1) * limit]
         );
-        // if(collectionRepo.rows.length === 0){
-        //     res.status(400).json({
-        //         "status" : "failed",
-        //         "message" : "查無此項目"
-        //     })
-        //     return;
-        // }
 
         //送出結果 200
         res.status(200).json({
@@ -88,22 +70,22 @@ const collectionController = {
         const { favorite_id } = req.params;
         const user_id = req.user.id;
 
-        if(isValid.isUndefined(favorite_id) || isValid.isNotValidString(favorite_id)){ 
-            res.status(400).json({
-                "status" : "failed",
-                "message" : "欄位未填寫正確"
-            })
-            return;
-        }
+        // if(isValid.isUndefined(favorite_id) || isValid.isNotValidString(favorite_id)){ 
+        //     res.status(400).json({
+        //         "status" : "failed",
+        //         "message" : "欄位未填寫正確"
+        //     })
+        //     return;
+        // }
 
-        const result = await pool.query('SELECT * FROM favorite WHERE user_id = $1 AND favorite_id = $2', [user_id, favorite_id]);
-        if(result.rows.length === 0){
-            res.status(400).json({
-                "status" : "failed",
-                "message" : "查無此項目"
-            })
-            return;
-        }
+        // const result = await pool.query('SELECT * FROM favorite WHERE user_id = $1 AND favorite_id = $2', [user_id, favorite_id]);
+        // if(result.rows.length === 0){
+        //     res.status(400).json({
+        //         "status" : "failed",
+        //         "message" : "查無此項目"
+        //     })
+        //     return;
+        // }
 
         await pool.query('DELETE FROM favorite WHERE user_id = $1 AND favorite_id = $2', [user_id, favorite_id]);
         res.status(200).json({
