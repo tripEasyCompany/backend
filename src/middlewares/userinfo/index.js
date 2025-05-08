@@ -313,7 +313,7 @@ async function patchuserresetprofilePW(req, res, next) {
     return;
   }
 
-  const { password, new_password, confirm_password } = value;
+  const { password, new_password } = value;
   const user = await pool.query('SELECT * FROM public."user" where user_id = $1', [req.user.id]);
 
   // [HTTP 400] 舊密碼輸入錯誤

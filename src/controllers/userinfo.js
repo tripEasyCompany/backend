@@ -32,7 +32,7 @@ async function post_user_SignUp(req, res, next) {
     );
     const level = levelResult.rows[0];
 
-    const pointResult = await client.query(
+    await client.query(
       'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3) RETURNING *',
       [user.user_id, '新增', 0]
     );
@@ -155,18 +155,17 @@ async function post_user_LoginGoogle(req, res, next) {
       );
       const user = userResult.rows[0];
 
-      const levelResult = await client.query(
+      await client.query(
         'INSERT INTO public."user_level" (user_id,level,name,badge_url,travel_point) VALUES ($1, $2, $3, $4, $5) RETURNING *',
         [user.user_id, 'Level 1', '初心旅人', 'https://example.com/badges/level1.png', 0]
       );
-      const level = levelResult.rows[0];
 
-      const pointResult = await client.query(
+      await client.query(
         'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3) RETURNING *',
         [user.user_id, '新增', 0]
       );
 
-      const socialLoginResult = await client.query(
+      await client.query(
         'INSERT INTO public."socialLogin" (user_id, provider_method, provider_id, provider_token) VALUES ($1, $2, $3, $4) RETURNING *',
         [user.user_id, 'google', code, access_token]
       );
