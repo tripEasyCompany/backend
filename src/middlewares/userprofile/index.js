@@ -8,25 +8,34 @@ const { pool } = require('../../config/database');//資料庫連線
 
 //[GET] 編號 10 使用者用戶資料呈現
 async function postuserInfo(req, res, next) {
+    // [HTTP 400] 提供欄位錯誤
 
+
+    // [HTTP 500] 例外錯誤，例如 : 資料庫/程式錯誤
 }
 
 
 //[PATCH] 編號 11 使用者用戶資料修改
 async function postuserInfoedit(req, res, next) {
+    // [HTTP 400] 提供欄位錯誤
 
+    // [HTTP 500] 例外錯誤，例如 : 資料庫/程式錯誤
 }
 
 
 
 //[PATCH] 編號 12 使用者個人照片修改
 async function postuserAvatar(req, res, next) {
+    // [HTTP 400] 提供欄位錯誤
 
+    // [HTTP 500] 例外錯誤，例如 : 資料庫/程式錯誤
 }
 
 //[GET] 編號 13 使用者會員等級積分
 async function postuserPointslevel(req, res, next) {
+    // [HTTP 400] 提供欄位錯誤
 
+    // [HTTP 500] 例外錯誤，例如 : 資料庫/程式錯誤
 }
 
 
