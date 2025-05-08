@@ -7,65 +7,57 @@ const namePattern = /^[a-zA-Z0-9\u4e00-\u9fa5]{2,5}$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,16}$/;
 
 const baseSchema = Joi.object({
-  name: Joi.string()
-      .pattern(namePattern)
-      .messages({
-        'string.pattern.base': '使用者名稱不符合規則，最少 2 個字元，最長 5 字元，不得包含特殊字元與空白。',
-        'any.required': '「使用者」為必填欄位',
-      }),
-  
-    email: Joi.string()
-      .email()
-      .messages({
-        'string.email': 'Email不符合規則，需符合 Email 格式。',
-        'any.required': '「Email」為必填欄位',
-      }),
-  
-    password: Joi.string()
-      .pattern(passwordPattern)
-      .messages({
-        'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
-        'any.required': '「密碼」為必填欄位',
-      }),
+  name: Joi.string().pattern(namePattern).messages({
+    'string.pattern.base':
+      '使用者名稱不符合規則，最少 2 個字元，最長 5 字元，不得包含特殊字元與空白。',
+    'any.required': '「使用者」為必填欄位',
+  }),
 
-    new_password : Joi.string()
-      .pattern(passwordPattern)
-      .messages({
-        'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
-        'any.required': '「新密碼」為必填欄位',
-      }),
+  email: Joi.string().email().messages({
+    'string.email': 'Email不符合規則，需符合 Email 格式。',
+    'any.required': '「Email」為必填欄位',
+  }),
 
-    confirm_password : Joi.string()
-      .pattern(passwordPattern)
-      .valid(Joi.ref('new_password'))
-      .messages({
-        'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
-        'any.only': '新密碼與驗證密碼不一致',
-        'any.required': '「驗證密碼」為必填欄位',
-      }),
-  
-    preference: Joi.array()
-      .items(Joi.string())
-      .length(3)
-      .messages({
-        'array.base': '個人偏好需為陣列資料格式。',
-        'array.length': '個人偏好需選擇 3 項內容。',
-        'any.required': '「個人偏好」為必填欄位',
-      }),
+  password: Joi.string().pattern(passwordPattern).messages({
+    'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
+    'any.required': '「密碼」為必填欄位',
+  }),
+
+  new_password: Joi.string().pattern(passwordPattern).messages({
+    'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
+    'any.required': '「新密碼」為必填欄位',
+  }),
+
+  confirm_password: Joi.string().pattern(passwordPattern).valid(Joi.ref('new_password')).messages({
+    'string.pattern.base': '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
+    'any.only': '新密碼與驗證密碼不一致',
+    'any.required': '「驗證密碼」為必填欄位',
+  }),
+
+  preference: Joi.array().items(Joi.string()).length(3).messages({
+    'array.base': '個人偏好需為陣列資料格式。',
+    'array.length': '個人偏好需選擇 3 項內容。',
+    'any.required': '「個人偏好」為必填欄位',
+  }),
 });
 
-const loginSchema = baseSchema.fork(['email', 'password'], field => field.required());
-const registerSchema = baseSchema.fork(['name', 'email', 'password','preference'], field => field.required());
-const forgotPasswordSchema = baseSchema.fork(['email'], field => field.required());
-const resetPasswordSchema = baseSchema.fork(['new_password','confirm_password'], field => field.required())
-                                      .unknown(true);
-const resetprofilePasswordSchema = baseSchema.fork(['password','new_password','confirm_password'], field => field.required())
+const loginSchema = baseSchema.fork(['email', 'password'], (field) => field.required());
+const registerSchema = baseSchema.fork(['name', 'email', 'password', 'preference'], (field) =>
+  field.required()
+);
+const forgotPasswordSchema = baseSchema.fork(['email'], (field) => field.required());
+const resetPasswordSchema = baseSchema
+  .fork(['new_password', 'confirm_password'], (field) => field.required())
+  .unknown(true);
+const resetprofilePasswordSchema = baseSchema.fork(
+  ['password', 'new_password', 'confirm_password'],
+  (field) => field.required()
+);
 
-
-module.exports ={
+module.exports = {
   loginSchema,
   registerSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  resetprofilePasswordSchema
+  resetprofilePasswordSchema,
 };
