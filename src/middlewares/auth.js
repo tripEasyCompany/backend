@@ -4,7 +4,7 @@ const resStatus = require('../utils/resStatus');
 const FailedMessageMap = {
   expired: 'Token 已過期',
   invalid: '無效的 token',
-  missing: '請先登入'
+  missing: '請先登入',
 };
 
 function verifyToken(req, res, next) {
@@ -15,7 +15,7 @@ function verifyToken(req, res, next) {
     return resStatus({
       res,
       status: 401,
-      message: FailedMessageMap.missing
+      message: FailedMessageMap.missing,
     });
   }
 
@@ -26,14 +26,13 @@ function verifyToken(req, res, next) {
     req.user = decoded;
     console.log('[Token payload]', decoded);  // <== 看看有沒有 id
     next();
-
   } catch (err) {
     // 分辨過期與其他無效
     const isExpired = err.name === 'TokenExpiredError';
     return resStatus({
       res,
       status: 401,
-      message: isExpired ? FailedMessageMap.expired : FailedMessageMap.invalid
+      message: isExpired ? FailedMessageMap.expired : FailedMessageMap.invalid,
     });
   }
 }

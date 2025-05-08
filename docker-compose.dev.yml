@@ -1,24 +1,24 @@
 services:
   migrate:
     image: flyway/flyway:10
-    profiles: ["tools"]
+    profiles: ['tools']
     depends_on:
       postgres:
         condition: service_healthy
-    entrypoint: ["flyway"]
+    entrypoint: ['flyway']
     command:
-      - "-url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_NAME}"
-      - "-user=${POSTGRES_DB_USER}"
-      - "-password=${POSTGRES_DB_PASSWORD}"
-      - "-baselineOnMigrate=true"
-      - "-locations=filesystem:/flyway/sql"
-      - "migrate"
+      - '-url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_NAME}'
+      - '-user=${POSTGRES_DB_USER}'
+      - '-password=${POSTGRES_DB_PASSWORD}'
+      - '-baselineOnMigrate=true'
+      - '-locations=filesystem:/flyway/sql'
+      - 'migrate'
     volumes:
       - ./migrations:/flyway/sql:ro
     networks:
       tripeasy_net:
         ipv4_address: 172.18.0.20
-    restart: "no"
+    restart: 'no'
 
   api:
     depends_on:
