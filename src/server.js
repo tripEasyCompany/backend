@@ -49,7 +49,7 @@ app.use(`/api/${version}`, healthRouter);
 // 編號 01~09 : 登入註冊驗證
 app.use(`/api/${version}/auth/userinfo`, userinfoRouter); 
 
-// 編號  : 個人收藏
+// 編號 17~19 : 個人收藏
 app.use(`/api/${version}/user/collection`, collectionRouter);
 
 

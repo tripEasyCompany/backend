@@ -93,6 +93,17 @@ function isUUIDParam(value){
     return !regex.test(value);   
 }
 
+// 語系確認
+function isValidLang(lang) {
+    const validLangs = ['zh-TW', 'en-US'];
+    return validLangs.includes(lang);
+}
+
+// 是否為空值
+function isEmpty(value) {
+    return value === null || value === undefined || value === '';
+}
+
 // 資料欄位不符的迴圈 ( String )
 const validateFields_String = (fields) => {
     for (const [key, value] of Object.entries(fields)) {
@@ -133,6 +144,12 @@ const validateFields_Password = (fields) => {
     return null
 }
 
+// 字串轉換後是否為整數
+const isStringToInt = (value) => {
+    const num = Number(value);
+    return !isNaN(num) || Number.isInteger(num); 
+}
+
 module.exports = {
     isUndefined,
     isparseInt,
@@ -151,5 +168,8 @@ module.exports = {
     validateFields_Int,
     validateFields_Date,
     validateFields_Password,
-    isUUIDParam
+    isUUIDParam,
+    isValidLang,
+    isStringToInt,
+    isEmpty
 }
