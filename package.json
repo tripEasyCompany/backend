@@ -11,7 +11,8 @@
     "clean_prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down ",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prettier": "prettier . --write"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
