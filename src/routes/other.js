@@ -3,7 +3,6 @@ const router = express.Router();
 
 // middleware 的內容
 
-
 // [GET] 編號 70 : 篩選按鈕 - 國家清單
 router.get('/countries');
 

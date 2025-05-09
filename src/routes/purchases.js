@@ -5,7 +5,7 @@ const router = express.Router();
 const auth = require('../middlewares/auth');
 
 // [GET] 編號 20 : 使用者已購買項目清單
-router.get('/info',auth);
+router.get('/info', auth);
 
 // [GET] 編號 21 : 使用者查看訂單明細
-router.get('/info/:order_id',auth);
+router.get('/info/:order_id', auth);

@@ -3,7 +3,6 @@ const router = express.Router();
 
 // middleware 的內容
 
-
 // [GET] 編號 26 : 使用者查看旅行團、背包客熱門、促銷等項目
 router.get('/products');
 

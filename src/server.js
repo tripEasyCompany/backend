@@ -59,10 +59,10 @@ app.use(`/api/${version}/user/automation`, automationRouter);
 app.use(`/api/${version}/user/purchases/info`, purchasesRouter);
 
 // 編號 26~27 : 首頁查詢項目
-app.use(`/api/${version}/user/home/search`,homeRouter);
+app.use(`/api/${version}/user/home/search`, homeRouter);
 
 // 編號 70~71 : 其他
-app.use(`/api/${version}/web/filter`,otherRouter);
+app.use(`/api/${version}/web/filter`, otherRouter);
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {
