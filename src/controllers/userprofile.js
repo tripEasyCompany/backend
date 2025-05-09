@@ -19,7 +19,7 @@ async function get_info(req, res, next){
         // [HTTP 200] 呈現資料
         resStatus({
             res:res,
-            status:210,
+            status:200,
             message:"查詢成功",
             dbdata:{ 
                 "is_logged_in": true ,
