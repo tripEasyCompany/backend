@@ -7,7 +7,7 @@ const { connectDB } = require('./config/database');
 // 載入路由
 const healthRouter = require('./routes/health');
 const userinfoRouter = require('./routes/userinfo');
-const userProfileRouter = require('./routes/userProfile');
+const userprofileRouter = require('./routes/userprofile');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
@@ -54,19 +54,19 @@ app.use(`/api/${version}`, healthRouter);
 app.use(`/api/${version}/auth/userinfo`, userinfoRouter);
 
 // 編號 10~13 : 個人基本資料
-app.use(`/api/${version}/user/userinfo`, userProfileRouter)
+app.use(`/api/${version}/user/userinfo`, userprofileRouter);
 
 // 編號 14~16 : 自動化通知
-app.use(`/api/${version}/user/automation`, automationRouter);
+//app.use(`/api/${version}/user/automation`, automationRouter);
 
 // 編號 20~21 : 個人訂單項目
-app.use(`/api/${version}/user/purchases/info`, purchasesRouter);
+//app.use(`/api/${version}/user/purchases/info`, purchasesRouter);
 
 // 編號 26~27 : 首頁查詢項目
-app.use(`/api/${version}/user/home/search`, homeRouter);
+//app.use(`/api/${version}/user/home/search`, homeRouter);
 
 // 編號 70~71 : 其他
-app.use(`/api/${version}/web/filter`, otherRouter);
+//app.use(`/api/${version}/web/filter`, otherRouter);
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {
