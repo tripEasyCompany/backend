@@ -7,7 +7,7 @@ const { connectDB } = require('./config/database');
 // 載入路由
 const healthRouter = require('./routes/health');
 const userinfoRouter = require('./routes/userinfo');
-const userprofileRouter = require('./routes/userprofile');
+const userprofileRouter = require('./routes/userProfile');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');

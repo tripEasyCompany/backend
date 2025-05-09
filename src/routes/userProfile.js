@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/userprofile');
+const controller = require('../controllers/userProfile');
 
 // middleware 的內容
 const mw = require('../middlewares/userprofile/index');
