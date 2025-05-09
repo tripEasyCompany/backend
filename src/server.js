@@ -10,7 +10,7 @@ const userinfoRouter = require('./routes/userinfo');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
-
+const otherRouter = require('./routes/other');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,6 +61,8 @@ app.use(`/api/${version}/user/purchases/info`, purchasesRouter);
 // 編號 26~27 : 首頁查詢項目
 app.use(`/api/${version}/user/home/search`,homeRouter);
 
+// 編號 70~71 : 其他
+app.use(`/api/${version}/web/filter`,otherRouter);
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {
