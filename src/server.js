@@ -7,6 +7,7 @@ const { connectDB } = require('./config/database');
 // 載入路由
 const healthRouter = require('./routes/health');
 const userinfoRouter = require('./routes/userinfo');
+const userProfileRouter = require('./routes/userProfile');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
@@ -51,6 +52,9 @@ app.use(`/api/${version}`, healthRouter);
 
 // 編號 01~09 : 登入註冊驗證
 app.use(`/api/${version}/auth/userinfo`, userinfoRouter);
+
+// 編號 10~13 : 個人基本資料
+app.use(`/api/${version}/user/userinfo`, userProfileRouter)
 
 // 編號 14~16 : 自動化通知
 app.use(`/api/${version}/user/automation`, automationRouter);
