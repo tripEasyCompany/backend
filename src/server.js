@@ -5,8 +5,8 @@ const path = require('path');
 const { connectDB } = require('./config/database');
 
 // 載入路由
-const healthRouter = require('./routes/health'); 
-const userinfoRouter = require('./routes/userinfo'); 
+const healthRouter = require('./routes/health');
+const userinfoRouter = require('./routes/userinfo');
 const collectionRouter = require('./routes/collection');
 
 const app = express();
@@ -47,11 +47,10 @@ app.get('/', (req, res) => {
 app.use(`/api/${version}`, healthRouter);
 
 // 編號 01~09 : 登入註冊驗證
-app.use(`/api/${version}/auth/userinfo`, userinfoRouter); 
+app.use(`/api/${version}/auth/userinfo`, userinfoRouter);
 
 // 編號 17~19 : 個人收藏
 app.use(`/api/${version}/user/collection`, collectionRouter);
-
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {
