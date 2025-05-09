@@ -3,7 +3,7 @@ const router = express.Router();
 const controller = require('../controllers/userProfile');
 
 // middleware 的內容
-const mw = require('../middlewares/userprofile/index');
+const mw = require('../middlewares/userProfile/index');
 const auth = require('../middlewares/auth');
 
 // [GET] 編號 10 : 使用者用戶資料呈現
