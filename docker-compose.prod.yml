@@ -1,6 +1,6 @@
 services:
   api:
-    depends_on: []  # ✅ 覆蓋掉 migrate 依賴
+    depends_on: [] # ✅ 覆蓋掉 migrate 依賴
     volumes: []
     environment:
       - NODE_ENV=production
@@ -13,4 +13,3 @@ services:
       - POSTGRES_DB_SSL=${POSTGRES_DB_SSL}
     env_file:
       - .env.production
-

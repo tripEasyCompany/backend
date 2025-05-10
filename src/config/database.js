@@ -1,4 +1,3 @@
-
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
@@ -23,7 +22,14 @@ if (env !== 'production') {
 }
 
 // ─── PostgreSQL 驗證必要環境變數 ─────────────────────────────────────
-const requiredEnvVars = ['POSTGRES_DB_HOST', 'POSTGRES_DB_PORT', 'POSTGRES_DB_USER', 'POSTGRES_DB_PASSWORD', 'POSTGRES_DB_NAME', 'JWT_SECRET' ];
+const requiredEnvVars = [
+  'POSTGRES_DB_HOST',
+  'POSTGRES_DB_PORT',
+  'POSTGRES_DB_USER',
+  'POSTGRES_DB_PASSWORD',
+  'POSTGRES_DB_NAME',
+  'JWT_SECRET',
+];
 requiredEnvVars.forEach((varName) => {
   if (!process.env[varName]) {
     console.error(`❌ 缺少必要環境變數: ${varName}`);
