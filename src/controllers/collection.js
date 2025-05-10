@@ -1,3 +1,4 @@
+const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
 
 const collectionController = {
@@ -14,16 +15,20 @@ const collectionController = {
         [user_id, limit, (page - 1) * limit]
       );
 
-      //送出結果 200
-      res.status(200).json({
-        status: 'success',
-        message: '查詢成功',
-        data: collectionRepo.rows,
+      // [HTTP 201]
+      resStatus({
+            res: res,
+            status: 200,
+            message: '查詢成功',
+            data: collectionRepo.rows
       });
     } catch (error) {
-      // [HTTP 500] 伺服器異常
-      console.error('❌ 伺服器內部錯誤:', error);
-      next(error);
+        // [HTTP 500] 伺服器異常
+        if (client) await client.query('ROLLBACK');
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+    } finally {
+        if (client) client.release();
     }
   },
 
@@ -32,20 +37,24 @@ const collectionController = {
     try {
       const { tour_id } = req.params;
       const user_id = req.user.id;
-
+``
       await pool.query('INSERT INTO favorite (user_id, tour_id) VALUES ($1, $2)', [
         user_id,
         tour_id,
       ]);
-      res.status(200).json({
-        status: 'success',
+      resStatus({
+        res: res,
+        status: 200,
         message: '新增成功',
       });
     } catch (error) {
-      // [HTTP 500] 伺服器異常
-      console.error('❌ 伺服器內部錯誤:', error);
-      next(error);
-    }
+        // [HTTP 500] 伺服器異常
+        if (client) await client.query('ROLLBACK');
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+      } finally {
+        if (client) client.release();
+      }
   },
 
   // [DELETE] 19 : 使用者取消收藏項目
@@ -58,16 +67,20 @@ const collectionController = {
         user_id,
         favorite_id,
       ]);
-      res.status(200).json({
-        status: 'success',
+      resStatus({
+        res: res,
+        status: 200,
         message: '刪除成功',
       });
-    } catch (error) {
-      // [HTTP 500] 伺服器異常
-      console.error('❌ 伺服器內部錯誤:', error);
-      next(error);
-    }
-  },
+    }catch (error) {
+        // [HTTP 500] 伺服器異常
+        if (client) await client.query('ROLLBACK');
+        console.error('❌ 伺服器內部錯誤:', error);
+        next(error);
+      } finally {
+        if (client) client.release();
+      }
+  }
 };
 
 module.exports = collectionController;

@@ -38,8 +38,9 @@ async function postCollection(req, res, next) {
   const user_id = req.user.id;
 
   if (isValid.isEmpty(tour_id) || isValid.isNotValidString(tour_id)) {
-    res.status(400).json({
-      status: 'failed',
+    resStatus({
+      res: res,
+      status: 400,
       message: '欄位未填寫正確',
     });
     return;
@@ -48,8 +49,9 @@ async function postCollection(req, res, next) {
   //檢查有無此商品
   const result = await pool.query('SELECT * FROM tour WHERE tour_id = $1', [tour_id]);
   if (result.rows.length === 0) {
-    res.status(400).json({
-      status: 'failed',
+    resStatus({
+      res: res,
+      status: 400,
       message: '查無此項目',
     });
     return;
@@ -61,10 +63,12 @@ async function postCollection(req, res, next) {
     [user_id, tour_id]
   );
   if (favoriteCheck.rows.length > 0) {
-    return res.status(400).json({
-      status: 'failed',
+    resStatus({
+      res: res,
+      status: 400,
       message: '已經收藏過此項目',
     });
+    return;
   }
 
   next();
@@ -80,8 +84,9 @@ async function deleteCollection(req, res, next) {
     isValid.isNotValidString(favorite_id) ||
     isValid.isUUIDParam(favorite_id)
   ) {
-    res.status(400).json({
-      status: 'failed',
+    resStatus({
+      res: res,
+      status: 400,
       message: '欄位未填寫正確',
     });
     return;
@@ -92,8 +97,9 @@ async function deleteCollection(req, res, next) {
     [user_id, favorite_id]
   );
   if (result.rows.length === 0) {
-    res.status(400).json({
-      status: 'failed',
+    resStatus({
+      res: res,
+      status: 400,
       message: '查無此項目',
     });
     return;
