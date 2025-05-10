@@ -33,7 +33,7 @@ app.use(
         callback(new Error('不允許的來源'));
       }
     },
-    //credentials: true,
+    credentials: true,
   })
 );
 
@@ -67,7 +67,7 @@ app.use(`/api/${version}/user/userinfo`, userprofileRouter);
 //app.use(`/api/${version}/user/home/search`, homeRouter);
 
 // 編號 70~71 : 其他
-//app.use(`/api/${version}/web/filter`, otherRouter);
+app.use(`/api/${version}/web/filter`, otherRouter);
 
 // ─── 404 處理 ───────────────────────────────────────
 app.use((req, res, next) => {
