@@ -9,6 +9,6 @@ const mw = require('../middlewares/other/index');
 router.get('/countries', controller.get_filter_country);
 
 // [GET] 編號 71 : 篩選按鈕 - 地區清單
-router.get('/:country_id/region',controller.get_filter_region);
+router.get('/:country_id/region', mw.getfilterRegion, controller.get_filter_region);
 
 module.exports = router;

@@ -22,9 +22,12 @@ async function get_filter_country(req, res, next) {
 
 // [GET] 編號 71 : 篩選按鈕 - 地區清單
 async function get_filter_region(req, res, next) {
-    const { country_id } = req.params;
+  const { country_id } = req.params;
   try {
-    const region = await pool.query('SELECT region_id,name FROM public."region" where country_id = $1',[country_id]);
+    const region = await pool.query(
+      'SELECT region_id,name FROM public."region" where country_id = $1',
+      [country_id]
+    );
 
     // [HTTP 200] 呈現資料
     resStatus({
