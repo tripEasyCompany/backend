@@ -2,22 +2,28 @@ const isValid = require('../../utils/isValid');
 const { pool } = require('../../config/database');
 const resStatus = require('../../utils/resStatus');
 
+// 資料驗證相關模組
+const isValidator = require('../../utils/Validator/isValidator.js');
+
 // [GET] 編號 17 : 使用者查看收藏項目
 async function getCollection(req, res, next) {
   const { lang, page, limit } = req.query;
   const user_id = req.user.id;
 
-  //空值、語系、字串
-  //空值、為整數
-  //空值、為整數
+  const { error, value } = getSchema.validate(req.query, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
   if (
-    isValid.isEmpty(lang) ||
-    !isValid.isValidLang(lang) ||
-    isValid.isNotValidString(lang) ||
-    isValid.isEmpty(page) ||
-    !isValid.isStringToInt(page) ||
-    isValid.isEmpty(limit) ||
-    !isValid.isStringToInt(limit)
+    // isValid.isEmpty(lang) ||
+    // !isValid.isValidLang(lang) ||
+    // isValid.isNotValidString(lang) ||
+    // isValid.isEmpty(page) ||
+    // !isValid.isStringToInt(page) ||
+    // isValid.isEmpty(limit) ||
+    // !isValid.isStringToInt(limit)
+    error
   ) {
     resStatus({
         res: res,
