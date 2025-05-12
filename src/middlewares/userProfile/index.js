@@ -41,6 +41,10 @@ async function patchuserprofileData(req, res, next) {
   next();
 }
 
+// [PATCH] 編號 12 : 使用者照片個人上傳
+
+// [GET] 編號 13 : 使用者會員等級積分
+
 module.exports = {
   patchuserprofileData,
 };
