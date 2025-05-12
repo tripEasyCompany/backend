@@ -16,6 +16,6 @@ router.patch('/info', auth, mw.patchuserprofileData, controller.patch_user_Profi
 router.patch('/avatar', auth);
 
 // [GET] 編號 13 : 使用者會員等級積分
-router.get('/pointslevel', auth);
+router.get('/pointslevel', auth,controller.get_user_PointCoupon);
 
 module.exports = router;
