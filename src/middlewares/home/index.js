@@ -1,6 +1,6 @@
 const resStatus = require('../../utils/resStatus.js');
 
-const home_Validator = require('../../utils/Validator/common_Validator.js');
+const home_Validator = require('../../utils/Validator/home_Validator.js');
 
 // [GET] 編號 26 : 使用者查看旅行團、背包客熱門、促銷等項目
 async function gethomeProduct(req, res, next) {

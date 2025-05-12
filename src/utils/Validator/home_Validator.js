@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 // ✅ 可集中管理所有支援語言
 const supportedLanguages = ['zh-TW', 'en-US'];
-const supportedType = ['tourgroup','backpacker'];
+const supportedType = ['tourgroup', 'backpacker'];
 const itemOptions = {
   tourgroup: ['popular', 'promotion', 'most_favorited'],
   backpacker: ['hotel', 'food', 'spot'],
@@ -21,11 +21,15 @@ const baseSchema = Joi.object({
   item: Joi.alternatives()
     .conditional('type', {
       is: 'tourgroup',
-      then: Joi.string().valid(...itemOptions.tourgroup).default('popular'),
+      then: Joi.string()
+        .valid(...itemOptions.tourgroup)
+        .default('popular'),
     })
     .conditional('type', {
       is: 'backpacker',
-      then: Joi.string().valid(...itemOptions.backpacker).default('hotel'),
+      then: Joi.string()
+        .valid(...itemOptions.backpacker)
+        .default('hotel'),
     })
     .messages({
       'any.only': '「item」值不符合對應的 type 選項',
@@ -57,10 +61,12 @@ const baseSchema = Joi.object({
     }),
 });
 
-const homeSchema = baseSchema.fork(['type','item','page', 'limit', 'lang'], (field) => field.required());
+const homeSchema = baseSchema.fork(['type', 'item', 'page', 'limit', 'lang'], (field) =>
+  field.required()
+);
 const reviewSchema = baseSchema.fork(['page', 'limit', 'lang'], (field) => field.required());
 
 module.exports = {
   homeSchema,
-  reviewSchema
+  reviewSchema,
 };
