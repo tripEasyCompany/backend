@@ -1,5 +1,6 @@
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
+const bucket = require('../config/firebase');
 
 const user_Valid = require('../utils/Validator/userprofile_Validator');
 
@@ -87,10 +88,111 @@ async function patch_user_ProfileData(req, res, next) {
 }
 
 // [PATCH] 編號 12 : 使用者照片個人上傳
+async function patch_userProfile_Photo(req, res, next) {
+  try {
+    const user = req.user;
+
+    const file = req.file;
+    const filename = `userProfile/${new Date().toISOString()}-${file.originalname}`;
+    const blob = bucket.file(filename);
+    const blobStream = blob.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+        metadata: {
+          firebaseStorageDownloadTokens: new Date().toISOString()
+        }
+      }
+    });
+
+    blobStream.end(file.buffer);
+    blobStream.on('finish', async () => {
+      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filename)}?alt=media`;
+      
+      await pool.query(
+        'update public."user" set avatar_url = $1 where user_id = $2',
+        [publicUrl,user.id]
+      );
+
+      // [HTTP 200] 呈現資料
+      resStatus({
+        res: res,
+        status: 200,
+        message: '更新成功',
+        dbdata: {
+          "avatar_url": publicUrl
+        }
+      });
+    });
+    
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
 
 // [GET] 編號 13 : 使用者會員等級積分
+async function get_user_PointCoupon(req, res, next) {
+  try {
+    const user = req.user;
+    const result = await pool.query(
+      'SELECT * FROM public."user_level_point_coupon" where 使用者編號 = $1',
+      [user.id]
+    );
+    const rows = result.rows;
+
+    const userMap = new Map();
+
+    for (const row of rows) {
+      const userId = row['使用者編號'];
+
+      if (!userMap.has(userId)) {
+        userMap.set(userId, {
+          使用者編號: row['使用者編號'],
+          名稱: row['名稱'],
+          信箱: row['信箱'],
+          角色: row['角色'],
+          個人照片: row['個人照片 Url'],
+          個人偏好1: row['個人偏好 1'],
+          個人偏好2: row['個人偏好 2'],
+          個人偏好3: row['個人偏好 3'],
+          旅遊等級: row['旅遊等級'],
+          旅遊等級名稱: row['旅遊等級名稱'],
+          旅遊徽章Url: row['旅遊徽章 Url'],
+          使用者旅遊積分: row['使用者旅遊積分'],
+          優惠券: [], // 用來收集此人所有優惠券
+        });
+      }
+
+      userMap.get(userId).優惠券.push({
+        優惠卷編號: row['優惠卷編號'],
+        優惠卷代碼: row['優惠卷代碼'],
+        優惠卷折扣: row['優惠卷折扣'],
+        優惠卷描述: row['優惠卷描述'],
+        優惠卷期限: row['優惠卷期限'],
+      });
+    }
+
+    const data = Array.from(userMap.values());
+
+    // [HTTP 200] 呈現資料
+    resStatus({
+      res: res,
+      status: 200,
+      message: '查詢成功',
+      dbdata: data,
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
 
 module.exports = {
   get_user_ProfileData,
   patch_user_ProfileData,
+  patch_userProfile_Photo,
+  get_user_PointCoupon,
 };
