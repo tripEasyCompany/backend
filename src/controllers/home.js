@@ -110,7 +110,6 @@ async function get_home_Review(req, res, next) {
       [limit, (page - 1) * limit]
     );
 
-    console.log(reviewData);
     // [HTTP 200] 呈現資料
     resStatus({
       res: res,

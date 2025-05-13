@@ -99,19 +99,19 @@ async function patch_userProfile_Photo(req, res, next) {
       metadata: {
         contentType: file.mimetype,
         metadata: {
-          firebaseStorageDownloadTokens: new Date().toISOString()
-        }
-      }
+          firebaseStorageDownloadTokens: new Date().toISOString(),
+        },
+      },
     });
 
     blobStream.end(file.buffer);
     blobStream.on('finish', async () => {
       const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filename)}?alt=media`;
-      
-      await pool.query(
-        'update public."user" set avatar_url = $1 where user_id = $2',
-        [publicUrl,user.id]
-      );
+
+      await pool.query('update public."user" set avatar_url = $1 where user_id = $2', [
+        publicUrl,
+        user.id,
+      ]);
 
       // [HTTP 200] 呈現資料
       resStatus({
@@ -119,18 +119,16 @@ async function patch_userProfile_Photo(req, res, next) {
         status: 200,
         message: '更新成功',
         dbdata: {
-          "avatar_url": publicUrl
-        }
+          avatar_url: publicUrl,
+        },
       });
     });
-    
   } catch (error) {
     // [HTTP 500] 伺服器異常
     console.error('❌ 伺服器內部錯誤:', error);
     next(error);
   }
 }
-
 
 // [GET] 編號 13 : 使用者會員等級積分
 async function get_user_PointCoupon(req, res, next) {
