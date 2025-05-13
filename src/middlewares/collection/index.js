@@ -7,24 +7,14 @@ const isValidator = require('../../utils/Validator/isValidator.js');
 
 // [GET] 編號 17 : 使用者查看收藏項目
 async function getCollection(req, res, next) {
-  const { lang, page, limit } = req.query;
-  const user_id = req.user.id;
 
-  const { error, value } = getSchema.validate(req.query, {
+  const { error } = isValidator.getSchema.validate(req.query, {
     abortEarly: false,
     stripUnknown: true
   });
+  console.log('GETerror', error);
 
-  if (
-    // isValid.isEmpty(lang) ||
-    // !isValid.isValidLang(lang) ||
-    // isValid.isNotValidString(lang) ||
-    // isValid.isEmpty(page) ||
-    // !isValid.isStringToInt(page) ||
-    // isValid.isEmpty(limit) ||
-    // !isValid.isStringToInt(limit)
-    error
-  ) {
+  if (error) {
     resStatus({
         res: res,
         status: 400,
@@ -43,7 +33,12 @@ async function postCollection(req, res, next) {
   const { tour_id } = req.params;
   const user_id = req.user.id;
 
-  if (isValid.isEmpty(tour_id) || isValid.isNotValidString(tour_id)) {
+  const { error } = isValidator.postSchema.validate(req.params, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (error){
     resStatus({
       res: res,
       status: 400,
@@ -85,11 +80,12 @@ async function deleteCollection(req, res, next) {
   const { favorite_id } = req.params;
   const user_id = req.user.id;
 
-  if (
-    isValid.isEmpty(favorite_id) ||
-    isValid.isNotValidString(favorite_id) ||
-    isValid.isUUIDParam(favorite_id)
-  ) {
+  const { error } = isValidator.deleteSchema.validate(req.params, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+  if (error)
+  {
     resStatus({
       res: res,
       status: 400,
