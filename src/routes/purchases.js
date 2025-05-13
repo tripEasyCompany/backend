@@ -9,3 +9,5 @@ router.get('/info', auth);
 
 // [GET] 編號 21 : 使用者查看訂單明細
 router.get('/info/:order_id', auth);
+
+module.exports = router;
