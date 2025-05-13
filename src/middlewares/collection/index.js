@@ -3,7 +3,7 @@ const { pool } = require('../../config/database');
 const resStatus = require('../../utils/resStatus');
 
 // 資料驗證相關模組
-const isValidator = require('../../utils/Validator/isValidator.js');
+const isValidator = require('../../utils/Validator/collection_Validator.js');
 
 // [GET] 編號 17 : 使用者查看收藏項目
 async function getCollection(req, res, next) {
