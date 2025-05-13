@@ -1,5 +1,6 @@
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
+const bucket = require('../config/firebase');
 
 const user_Valid = require('../utils/Validator/userprofile_Validator');
 
@@ -87,12 +88,58 @@ async function patch_user_ProfileData(req, res, next) {
 }
 
 // [PATCH] 編號 12 : 使用者照片個人上傳
+async function patch_userProfile_Photo(req, res, next) {
+  try {
+    const user = req.user;
+
+    const file = req.file;
+    const filename = `userProfile/${new Date().toISOString()}-${file.originalname}`;
+    const blob = bucket.file(filename);
+    const blobStream = blob.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+        metadata: {
+          firebaseStorageDownloadTokens: new Date().toISOString()
+        }
+      }
+    });
+
+    blobStream.end(file.buffer);
+    blobStream.on('finish', async () => {
+      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filename)}?alt=media`;
+      
+      await pool.query(
+        'update public."user" set avatar_url = $1 where user_id = $2',
+        [publicUrl,user.id]
+      );
+
+      // [HTTP 200] 呈現資料
+      resStatus({
+        res: res,
+        status: 200,
+        message: '更新成功',
+        dbdata: {
+          "avatar_url": publicUrl
+        }
+      });
+    });
+    
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
 
 // [GET] 編號 13 : 使用者會員等級積分
 async function get_user_PointCoupon(req, res, next) {
   try {
     const user = req.user;
-    const result = await pool.query('SELECT * FROM public."user_level_point_coupon" where 使用者編號 = $1', [user.id]);
+    const result = await pool.query(
+      'SELECT * FROM public."user_level_point_coupon" where 使用者編號 = $1',
+      [user.id]
+    );
     const rows = result.rows;
 
     const userMap = new Map();
@@ -134,7 +181,7 @@ async function get_user_PointCoupon(req, res, next) {
       res: res,
       status: 200,
       message: '查詢成功',
-      dbdata: data
+      dbdata: data,
     });
   } catch (error) {
     // [HTTP 500] 伺服器異常
@@ -143,9 +190,9 @@ async function get_user_PointCoupon(req, res, next) {
   }
 }
 
-
 module.exports = {
   get_user_ProfileData,
   patch_user_ProfileData,
-  get_user_PointCoupon
+  patch_userProfile_Photo,
+  get_user_PointCoupon,
 };
