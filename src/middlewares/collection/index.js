@@ -7,18 +7,16 @@ const isValidator = require('../../utils/Validator/collection_Validator.js');
 
 // [GET] 編號 17 : 使用者查看收藏項目
 async function getCollection(req, res, next) {
-
   const { error } = isValidator.getSchema.validate(req.query, {
     abortEarly: false,
-    stripUnknown: true
+    stripUnknown: true,
   });
-  console.log('GETerror', error);
 
   if (error) {
     resStatus({
-        res: res,
-        status: 400,
-        message: '欄位未填寫正確'
+      res: res,
+      status: 400,
+      message: '欄位未填寫正確',
     });
     return;
   }
@@ -35,10 +33,10 @@ async function postCollection(req, res, next) {
 
   const { error } = isValidator.postSchema.validate(req.params, {
     abortEarly: false,
-    stripUnknown: true
+    stripUnknown: true,
   });
 
-  if (error){
+  if (error) {
     resStatus({
       res: res,
       status: 400,
@@ -82,10 +80,9 @@ async function deleteCollection(req, res, next) {
 
   const { error } = isValidator.deleteSchema.validate(req.params, {
     abortEarly: false,
-    stripUnknown: true
+    stripUnknown: true,
   });
-  if (error)
-  {
+  if (error) {
     resStatus({
       res: res,
       status: 400,
