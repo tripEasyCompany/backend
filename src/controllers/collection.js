@@ -25,7 +25,6 @@ const collectionController = {
       });
     } catch (error) {
         // [HTTP 500] 伺服器異常
-        if (client) await client.query('ROLLBACK');
         console.error('❌ 伺服器內部錯誤:', error);
         next(error);
     } 
@@ -48,7 +47,6 @@ const collectionController = {
       });
     } catch (error) {
         // [HTTP 500] 伺服器異常
-        if (client) await client.query('ROLLBACK');
         console.error('❌ 伺服器內部錯誤:', error);
         next(error);
       } 
@@ -71,7 +69,6 @@ const collectionController = {
       });
     }catch (error) {
         // [HTTP 500] 伺服器異常
-        if (client) await client.query('ROLLBACK');
         console.error('❌ 伺服器內部錯誤:', error);
         next(error);
       } 

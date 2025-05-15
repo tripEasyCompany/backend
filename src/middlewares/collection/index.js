@@ -1,4 +1,3 @@
-const isValid = require('../../utils/isValid');
 const { pool } = require('../../config/database');
 const resStatus = require('../../utils/resStatus');
 
@@ -12,7 +11,6 @@ async function getCollection(req, res, next) {
     abortEarly: false,
     stripUnknown: true
   });
-  console.log('GETerror', error);
 
   if (error) {
     resStatus({

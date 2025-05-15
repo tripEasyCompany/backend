@@ -12,6 +12,7 @@ const collectionRouter = require('./routes/collection');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
+const adminRouter = require('./routes/admin');
 const otherRouter = require('./routes/other');
 
 const app = express();
@@ -69,6 +70,9 @@ app.use(`/api/${version}/user/collection`, collectionRouter);
 
 // 編號 26~27 : 首頁查詢項目
 //app.use(`/api/${version}/user/home/search`, homeRouter);
+
+// 編號 42~45 : 個人用戶基本資料
+app.use(`/api/${version}/admin`, adminRouter);
 
 // 編號 70~71 : 其他
 //app.use(`/api/${version}/web/filter`, otherRouter);
