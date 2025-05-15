@@ -147,28 +147,28 @@ async function get_user_PointCoupon(req, res, next) {
 
       if (!userMap.has(userId)) {
         userMap.set(userId, {
-          使用者編號: row['使用者編號'],
-          名稱: row['名稱'],
-          信箱: row['信箱'],
-          角色: row['角色'],
-          個人照片: row['個人照片 Url'],
-          個人偏好1: row['個人偏好 1'],
-          個人偏好2: row['個人偏好 2'],
-          個人偏好3: row['個人偏好 3'],
-          旅遊等級: row['旅遊等級'],
-          旅遊等級名稱: row['旅遊等級名稱'],
-          旅遊徽章Url: row['旅遊徽章 Url'],
-          使用者旅遊積分: row['使用者旅遊積分'],
-          優惠券: [], // 用來收集此人所有優惠券
+          user_id: row['使用者編號'],
+          name: row['名稱'],
+          email: row['信箱'],
+          role: row['角色'],
+          avatar_url: row['個人照片 Url'],
+          preference1: row['個人偏好 1'],
+          preference2: row['個人偏好 2'],
+          preference3: row['個人偏好 3'],
+          level: row['旅遊等級'],
+          level_name: row['旅遊等級名稱'],
+          badge_url: row['旅遊徽章 Url'],
+          travel_point: row['使用者旅遊積分'],
+          coupon: [], // 用來收集此人所有優惠券
         });
       }
 
-      userMap.get(userId).優惠券.push({
-        優惠卷編號: row['優惠卷編號'],
-        優惠卷代碼: row['優惠卷代碼'],
-        優惠卷折扣: row['優惠卷折扣'],
-        優惠卷描述: row['優惠卷描述'],
-        優惠卷期限: row['優惠卷期限'],
+      userMap.get(userId).coupon.push({
+        coupon_id: row['優惠卷編號'],
+        code: row['優惠卷代碼'],
+        discount: row['優惠卷折扣'],
+        description: row['優惠卷描述'],
+        expire_date: row['優惠卷期限'],
       });
     }
 

@@ -59,13 +59,13 @@ app.use(`/api/${version}/auth/userinfo`, userinfoRouter);
 app.use(`/api/${version}/user/userinfo`, userprofileRouter);
 
 // 編號 14~16 : 自動化通知
-//app.use(`/api/${version}/user/automation`, automationRouter);
+app.use(`/api/${version}/user/automation`, automationRouter);
 
 // 編號 17~19 : 個人收藏
 app.use(`/api/${version}/user/collection`, collectionRouter);
 
 // 編號 20~21 : 個人訂單項目
-//app.use(`/api/${version}/user/purchases/info`, purchasesRouter);
+app.use(`/api/${version}/user/purchases`, purchasesRouter);
 
 // 編號 26~27 : 首頁查詢項目
 app.use(`/api/${version}/user/home/search`, homeRouter);
