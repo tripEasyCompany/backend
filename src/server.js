@@ -8,6 +8,7 @@ const { connectDB } = require('./config/database');
 const healthRouter = require('./routes/health');
 const userinfoRouter = require('./routes/userinfo');
 const userprofileRouter = require('./routes/userProfile');
+const collectionRouter = require('./routes/collection');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
@@ -59,6 +60,9 @@ app.use(`/api/${version}/user/userinfo`, userprofileRouter);
 
 // 編號 14~16 : 自動化通知
 app.use(`/api/${version}/user/automation`, automationRouter);
+
+// 編號 17~19 : 個人收藏
+app.use(`/api/${version}/user/collection`, collectionRouter);
 
 // 編號 20~21 : 個人訂單項目
 app.use(`/api/${version}/user/purchases`, purchasesRouter);

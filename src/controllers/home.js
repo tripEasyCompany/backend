@@ -1,6 +1,3 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
 
@@ -110,7 +107,6 @@ async function get_home_Review(req, res, next) {
       [limit, (page - 1) * limit]
     );
 
-    console.log(reviewData);
     // [HTTP 200] 呈現資料
     resStatus({
       res: res,
