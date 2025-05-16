@@ -10,9 +10,9 @@ const mw = require('../middlewares/automation/index');
 router.get('/allnotifi-settings', auth, controller.get_allnotifiSettings);
 
 // [PATCH] 編號 15 : 使用者勾選要有旅遊提醒
-router.patch('/notifi-settings', auth,mw.patchearlyNoti,controller.patch_early_notifiSettings);
+router.patch('/notifi-settings', auth, mw.patchearlyNoti, controller.patch_early_notifiSettings);
 
 // [PATCH] 編號 16 : 使用者勾選預期價格通知提醒
-router.patch('/price-tracking', auth);
+router.patch('/price-tracking', auth, mw.patchpriceNoti,controller.patch_price_notifiSettings);
 
 module.exports = router;
