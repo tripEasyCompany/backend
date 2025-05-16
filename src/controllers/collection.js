@@ -15,6 +15,7 @@ const collectionController = {
         'SELECT * FROM public."user_favorite" WHERE 收藏人員編號 = $1 ORDER BY 建立時間 DESC LIMIT $2 OFFSET $3',
         [user_id, limit, (page - 1) * limit]
       );
+
       if (collectionRepo.rowCount > 0) {
         const transformedRows = collectionRepo.rows.map((row) => {
           // 將偏好分類數字轉換為文字陣列
@@ -51,6 +52,16 @@ const collectionController = {
           message: '查無資料',
         });
       }
+
+      // [HTTP 201]
+      resStatus({
+        res: res,
+        status: 200,
+        message: '查詢成功',
+        dbdata: {
+          data: collectionRepo.rows,
+        },
+      });
     } catch (error) {
       // [HTTP 500] 伺服器異常
       console.error('❌ 伺服器內部錯誤:', error);
