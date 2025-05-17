@@ -20,8 +20,6 @@ async function getCollection(req, res, next) {
     return;
   }
 
-  //???(當page, limit 超出資料庫範圍時)
-
   next();
 }
 

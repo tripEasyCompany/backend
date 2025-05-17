@@ -4,6 +4,7 @@ const router = express.Router();
 const controller = require('../controllers/collection');
 const auth = require('../middlewares/auth');
 const authRole = require('../middlewares/authorizeRoles');
+
 const mw = require('../middlewares/collection/index');
 
 // middlewave
