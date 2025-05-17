@@ -26,7 +26,7 @@ async function getUserDetailinfo(req, res, next) {
 
     //[400] 欄位未填寫正確
     const allParams = {...req.params, ...req.query};
-    const { error } = isValidator.userDetailinfoSchema.validate(req.params, req.query, {
+    const { error } = isValidator.userDetailinfoSchema.validate(allParams, {
         abortEarly: false,
         stripUnknown: true
     });
