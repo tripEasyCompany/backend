@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const supportedLanguages = ['zh-TW', 'en-US'];
 
 const baseSchema = Joi.object({
   tour_ids: Joi.alternatives()
@@ -32,11 +33,52 @@ const baseSchema = Joi.object({
   }),
 });
 
+const queryPromotionSchema = Joi.object({
+  country: Joi.string().optional().messages({
+    'string.base': '「國家」必須是文字',
+  }),
+
+  region: Joi.string().optional().messages({
+    'string.base': '「地區」必須是文字',
+  }),
+
+  create_date: Joi.date().iso().optional().messages({
+    'date.base': '「建立日期」必須是合法日期',
+    'date.format': '「建立日期」格式應為 YYYY-MM-DD',
+  }),
+
+  keyword: Joi.string().allow('').optional().messages({
+    'string.base': '「關鍵字」必須是文字',
+  }),
+
+  page: Joi.number().integer().min(1).default(1).messages({
+    'number.base': '「page」必須是數字',
+    'number.min': '「page」最小值為 1',
+  }),
+
+  limit: Joi.number().integer().min(1).default(10).messages({
+    'number.base': '「limit」必須是數字',
+    'number.min': '「limit」最小值為 1',
+  }),
+
+  lang: Joi.string()
+    .valid(...supportedLanguages)
+    .default('zh-TW')
+    .messages({
+      'any.only': '「lang」僅支援 zh-TW、en-US',
+      'string.base': '「lang」必須是文字',
+    }),
+});
+
 const createPromotionSchema = baseSchema.fork(
   ['tour_ids', 'discount_rate', 'start_date', 'end_date'],
   (field) => field.required()
 );
 
+const deletePromotionSchema = baseSchema.fork(['tour_ids'], (field) => field.required());
+
 module.exports = {
+  queryPromotionSchema,
   createPromotionSchema,
+  deletePromotionSchema,
 };
