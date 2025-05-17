@@ -12,3 +12,5 @@ router.patch('/notifi-settings', auth);
 
 // [PATCH] 編號 16 : 使用者勾選預期價格通知提醒
 router.patch('/price-tracking', auth);
+
+module.exports = router;

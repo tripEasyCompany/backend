@@ -1,5 +1,7 @@
 const Joi = require('joi');
 
+const supportedLanguages = ['zh-TW', 'en-US'];
+
 // UUID 驗證
 const UUIDField = Joi.string()
   .guid({ version: ['uuidv4', 'uuidv5'] })
@@ -18,7 +20,7 @@ const nonEmptyString = Joi.string().min(1).required().messages({
 });
 
 // 語言驗證
-const langSchema = Joi.string().valid('zh', 'en').required().messages({
+const langSchema = Joi.string().valid(...supportedLanguages).required().messages({
   'any.required': '語系為必填欄位',
   'any.only': '語系僅支援 zh 或 en',
   'string.empty': '語系不得為空',
@@ -41,7 +43,7 @@ const getSchema = Joi.object({
 
 // POST 請求驗證
 const postSchema = Joi.object({
-  tour_id: nonEmptyString, 
+  tour_id: nonEmptyString,
 });
 
 // DELETE 或其他需要 ID 的情境
