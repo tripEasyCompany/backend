@@ -35,7 +35,7 @@ app.use(
         callback(new Error('不允許的來源'));
       }
     },
-    //credentials: true,
+    credentials: true,
   })
 );
 
@@ -69,13 +69,13 @@ app.use(`/api/${version}/user/collection`, collectionRouter);
 //app.use(`/api/${version}/user/purchases/info`, purchasesRouter);
 
 // 編號 26~27 : 首頁查詢項目
-//app.use(`/api/${version}/user/home/search`, homeRouter);
+app.use(`/api/${version}/user/home/search`, homeRouter);
 
 // 編號 42~45 : 個人用戶基本資料
 app.use(`/api/${version}/admin`, adminRouter);
 
 // 編號 70~71 : 其他
-//app.use(`/api/${version}/web/filter`, otherRouter);
+app.use(`/api/${version}/web/filter`, otherRouter);
 
 
 // ─── 404 處理 ───────────────────────────────────────
