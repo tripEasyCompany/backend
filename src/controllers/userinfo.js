@@ -93,9 +93,9 @@ async function post_user_LoginEmail(req, res, next) {
     await client.query('COMMIT');
 
     // 簽發 JWT（依你專案調整）
-    const payload = { id: user.user_id };
+    const payload = { id: user.user_id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_DAY || '30d',
+      expiresIn: process.env.JWT_EXPIRES_DAY || '7d',
     });
 
     // [HTTP 200] 呈現資料
@@ -178,9 +178,9 @@ async function post_user_LoginGoogle(req, res, next) {
     const level = await pool.query('SELECT * FROM public."user_level" where user_id = $1', [
       user.rows[0].user_id,
     ]);
-    const payload = { id: user.rows[0].user_id };
+    const payload = { id: user.rows[0].user_id, role: user.rows[0].role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_DAY || '30d',
+      expiresIn: process.env.JWT_EXPIRES_DAY || '7d',
     });
 
     resStatus({
@@ -238,8 +238,8 @@ async function post_user_forgetPW(req, res, next) {
       subject: 'TripEasy 密碼重設連結',
       html: `
                 <p>您好，親愛的用戶 : </p><br>
-                <p>請於 15 分鐘內點擊以下連結以重設密碼：</p>
-                <a href="${resetUrl}">${resetUrl}</a>
+                <p>請於 15 分鐘內點擊以下連結以重設密碼：</p><br>
+                <a href="${resetUrl}">連結 : ${resetUrl}</a>
                 <p>若您未曾申請重設密碼，請忽略此信件，謝謝。</p>
             `,
     });

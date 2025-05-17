@@ -12,6 +12,10 @@ const collectionRouter = require('./routes/collection');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
+const membersRouter = require('./routes/member');
+const promotionRouter = require('./routes/promotions');
+const couponRouter = require('./routes/coupons');
+const schedulerRouter = require('./routes/scheduler');
 const otherRouter = require('./routes/other');
 
 const app = express();
@@ -69,6 +73,18 @@ app.use(`/api/${version}/user/purchases`, purchasesRouter);
 
 // 編號 26~27 : 首頁查詢項目
 app.use(`/api/${version}/user/home/search`, homeRouter);
+
+// 編號 42~45、68~69 : 用戶基本資料、優惠卷
+app.use(`/api/${version}/admin/members`, membersRouter);
+
+// 編號 57~59 : 促銷管理
+app.use(`/api/${version}/admin/promotions`, promotionRouter);
+
+// 編號 61~69 : 優惠卷
+app.use(`/api/${version}/admin/coupons`, couponRouter);
+
+// 編號 40、52、60 : 自動化排程
+app.use(`/api/${version}/web/scheduler`, schedulerRouter);
 
 // 編號 70~71 : 其他
 app.use(`/api/${version}/web/filter`, otherRouter);
