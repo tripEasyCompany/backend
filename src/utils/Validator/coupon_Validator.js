@@ -25,6 +25,12 @@ const baseSchema = Joi.object({
       'any.required': '「user_ids」為必填欄位',
     }),
 
+  user_id: Joi.string().uuid({ version: 'uuidv4' }).messages({
+    'string.base': '「user_id」必須是文字格式',
+    'string.guid': '「user_id」必須是有效的 UUIDv4 格式',
+    'any.required': '「user_id」為必填欄位',
+  }),
+
   coupon: Joi.string().messages({
     'string.base': '「優惠卷代碼」必須是文字',
     'string.empty': '「優惠卷代碼」不可為空',
@@ -74,6 +80,8 @@ const updateCouponExpirySchema = baseSchema.fork(['coupon_ids', 'end_date'], (fi
 );
 const deleteCouponSchema = baseSchema.fork(['coupon_ids'], (field) => field.required());
 const postCouponAssignSchema = baseSchema.fork(['coupon', 'user_ids'], (field) => field.required());
+const getuserCouponSchema = baseSchema.fork(['user_id'], (field) => field.required());
+const deleteuserCouponSchema = baseSchema.fork(['coupon_id'], (field) => field.required());
 
 module.exports = {
   createCouponSchema,
@@ -83,4 +91,6 @@ module.exports = {
   updateCouponExpirySchema,
   deleteCouponSchema,
   postCouponAssignSchema,
+  getuserCouponSchema,
+  deleteuserCouponSchema,
 };
