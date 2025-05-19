@@ -12,6 +12,9 @@ const collectionRouter = require('./routes/collection');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
+const cartRouter = require('./routes/cart');
+const discountsRouter = require('./routes/discounts');
+const checkoutRouter = require('./routes/checkout');
 const adminRouter = require('./routes/admin');
 const promotionRouter = require('./routes/promotions');
 const couponRouter = require('./routes/coupons');
@@ -77,10 +80,13 @@ app.use(`/api/${version}/user/purchases`, purchasesRouter);
 app.use(`/api/${version}/user/home/search`, homeRouter);
 
 // 編號 28~31 : 購物車
+app.use(`/api/${version}/user/trade/cart`, cartRouter);
 
 // 編號 32~33 : 購物 ( 優惠卷 )
+app.use(`/api/${version}/user/trade/discounts`, discountsRouter);
 
 // 編號 34~36 : 購物功能
+app.use(`/api/${version}/user/checkout`, checkoutRouter);
 
 // 編號 42~45、68~69 : 用戶基本資料、優惠卷
 app.use(`/api/${version}/admin`, adminRouter);

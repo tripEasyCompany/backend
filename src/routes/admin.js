@@ -8,9 +8,21 @@ const authRole = require('../middlewares/authorizeRoles');
 const mw = require('../middlewares/admin/index');
 
 // [GET] 編號 68 : 管理者查看使用者的優惠卷清單
-router.get('/members/:user_id/coupons', auth, authRole('admin'), mw.get_userCoupon);
+router.get(
+  '/members/:user_id/coupons',
+  auth,
+  authRole('admin'),
+  mw.get_userCoupon,
+  controller.get_user_couponList
+);
 
 // [DELETE] 編號 69 : 管理者刪除優惠卷綁定
-router.delete('/members/:user_id/coupons/unbind', auth, authRole('admin'), mw.delete_userCoupon);
+router.delete(
+  '/members/:user_id/coupons/unbind',
+  auth,
+  authRole('admin'),
+  mw.delete_userCoupon,
+  controller.delete_user_couponAssign
+);
 
 module.exports = router;

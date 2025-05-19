@@ -65,21 +65,28 @@ async function delete_userCoupon(req, res, next) {
   }
 
   // [HTTP 404] 查無此優惠卷
-  const { coupon_ids } = req.body;
-  const couponIdList = Array.isArray(coupon_ids) ? coupon_ids : [coupon_ids];
-  const couponRepo = await pool.query(
-    'SELECT coupon_id FROM public."coupon" WHERE coupon_id = ANY($1::uuid[])',
-    [couponIdList]
-  );
-
-  const foundIds = couponRepo.rows.map((row) => row.coupon_id);
-  const missingIds = couponIdList.filter((id) => !foundIds.includes(id));
-
-  if (missingIds.length > 0) {
+  const { coupon_id } = req.body;
+  const couponRepo = await pool.query('SELECT * FROM public."coupon" WHERE coupon_id = $1', [
+    coupon_id,
+  ]);
+  if (couponRepo.rowCount === 0) {
     return resStatus({
       res,
       status: 404,
-      message: `查無以下優惠卷: ${missingIds.join(', ')}`,
+      message: '查無此優惠卷',
+    });
+  }
+
+  // [HTTP 404] 查無此優惠卷綁定
+  const userAssignRepo = await pool.query(
+    'SELECT * FROM public."user_coupon" WHERE user_id = $1 AND coupon_id = $2',
+    [user_id, coupon_id]
+  );
+  if (userAssignRepo.rowCount === 0) {
+    return resStatus({
+      res,
+      status: 404,
+      message: '查無此優惠卷綁定',
     });
   }
 
