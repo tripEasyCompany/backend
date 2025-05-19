@@ -1,6 +1,30 @@
 const Joi = require('joi');
 
 const baseSchema = Joi.object({
+  coupon_ids: Joi.alternatives()
+    .try(
+      Joi.string().uuid({ version: 'uuidv4' }),
+      Joi.array()
+        .items(Joi.string().uuid({ version: 'uuidv4' }))
+        .min(1)
+    )
+    .messages({
+      'alternatives.match': '「coupon_ids」必須是單一 UUID 或 UUID 陣列',
+      'any.required': '「coupon_ids」為必填欄位',
+    }),
+
+  user_ids: Joi.alternatives()
+    .try(
+      Joi.string().uuid({ version: 'uuidv4' }),
+      Joi.array()
+        .items(Joi.string().uuid({ version: 'uuidv4' }))
+        .min(1)
+    )
+    .messages({
+      'alternatives.match': '「user_ids」必須是單一 UUID 或 UUID 陣列',
+      'any.required': '「user_ids」為必填欄位',
+    }),
+
   coupon: Joi.string().messages({
     'string.base': '「優惠卷代碼」必須是文字',
     'string.empty': '「優惠卷代碼」不可為空',
@@ -35,23 +59,28 @@ const createCouponSchema = baseSchema.fork(
   ['coupon', 'end_date', 'discount_amount', 'description'],
   (field) => field.required()
 );
-
 const queryCouponSchema = Joi.object({
   coupon: baseSchema.extract('coupon'),
 });
-
 const getCouponDetailSchema = baseSchema.fork(['coupon_id'], (field) => field.required());
-
 const updateCouponSchema = baseSchema
   .fork(['coupon', 'end_date', 'discount_amount', 'description'], (field) => field.optional())
   .or('coupon', 'end_date', 'discount_amount', 'description')
   .messages({
     'object.missing': '請至少填寫一個欄位進行更新',
   });
+const updateCouponExpirySchema = baseSchema.fork(['coupon_ids', 'end_date'], (field) =>
+  field.required()
+);
+const deleteCouponSchema = baseSchema.fork(['coupon_ids'], (field) => field.required());
+const postCouponAssignSchema = baseSchema.fork(['coupon', 'user_ids'], (field) => field.required());
 
 module.exports = {
   createCouponSchema,
   queryCouponSchema,
   getCouponDetailSchema,
   updateCouponSchema,
+  updateCouponExpirySchema,
+  deleteCouponSchema,
+  postCouponAssignSchema,
 };
