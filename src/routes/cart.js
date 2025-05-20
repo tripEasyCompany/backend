@@ -4,9 +4,10 @@ const router = express.Router();
 // middleware 的內容
 const auth = require('../middlewares/auth');
 const authRole = require('../middlewares/authorizeRoles');
+const mw = require('../middlewares/cart/index');
 
 // [POST] 編號 28 : 使用者加入項目至購物車
-router.post('/:tour_id', auth, authRole('user'));
+router.post('/:tour_id', auth, authRole('user'), mw.post_userCart);
 
 // [DELETE] 編號 29 : 使用者取消購物車項目
 router.delete('/:tour_id', auth, authRole('user'));
