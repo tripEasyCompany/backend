@@ -415,5 +415,6 @@ CREATE TABLE "user_coupon" (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES "user"(user_id),
     FOREIGN KEY (order_id) REFERENCES "orders"(order_id),
-    FOREIGN KEY (coupon_id) REFERENCES "coupon"(coupon_id)
+    FOREIGN KEY (coupon_id) REFERENCES "coupon"(coupon_id),
+    UNIQUE (user_id, coupon_id) -- 確保每個使用者只能擁有一個優惠卷
 );
