@@ -6,9 +6,9 @@ const auth = require('../middlewares/auth');
 const authRole = require('../middlewares/authorizeRoles');
 
 // [POST] 編號 32 : 使用者輸入優惠卷、累積積分
-router.post('/', auth, authRole('user'));
+router.post('/', auth, authRole('User'));
 
 // [DELETE] 編號 33 : 使用者取消優惠卷、累積積分
-router.delete('/', auth, authRole('user'));
+router.delete('/', auth, authRole('User'));
 
 module.exports = router;

@@ -5,11 +5,11 @@ const cart_Validator = require('../../utils/Validator/cart_Validator.js');
 
 // [POST] 編號 28 : 使用者加入項目至購物車
 async function post_userCart(req, res, next) {
-  const { error } = cart_Validator.baseSchema.validate(req.params);
+  const { error : bodyError } = cart_Validator.baseSchema.validate(req.body);
 
   // [HTTP 400] 資料錯誤
-  if (error) {
-    const message = error?.details?.[0]?.message || '欄位驗證錯誤';
+  if (bodyError) {
+    const message = bodyError?.details?.[0]?.message || '欄位驗證錯誤';
     resStatus({
       res: res,
       status: 400,
@@ -44,9 +44,67 @@ async function post_userCart(req, res, next) {
   const { type, item, people, options } = req.body;
   if (item === 'hotel') {
     // [HTTP 400] 選擇的房間已無空房
+    const booking_room = await pool.query(
+      'select * from public.hotel_booking($1,$2,$3,$4);',
+      [options.room_type, options.start_date, options.end_date, tour_id]
+    );
+
+    if (booking_room.rowCount > 0) {
+      const booking_count = booking_room.rows[0].booking_count;
+      const room_count = booking_room.rows[0].room_count;
+      if (booking_count >= room_count) {
+        return resStatus({
+          res,
+          status: 400,
+          message: '選擇的房間已無空房',
+        });
+      }
+    }
   } else if (item === 'food') {
     // [HTTP 400] 預約已額滿
+    const booking_food = await pool.query(
+      'select * from public.restaurant_booking($1,$2);',
+      [options.start_time, tour_id]
+    );
+
+    if (booking_food.rowCount > 0) {
+      const booking_count = booking_food.rows[0].booking_count;
+      const food_count = booking_food.rows[0].reservation_limit;
+      if (booking_count >= food_count) {
+        return resStatus({
+          res,
+          status: 400,
+          message: '預約已額滿',
+        });
+      }
+    }
+
+    // [HTTP 400] 餐廳已關閉
+    const food_time = await pool.query(
+      'SELECT * FROM restaurant_business_parsed WHERE restaurant_id = $1 AND $2::time BETWEEN start_time AND end_time;',
+      [tour_id,options.start_time]
+    );
+    if (food_time.rowCount === 0) {
+      return resStatus({
+        res,
+        status: 400,
+        message: '餐廳已關閉',
+      });
+    }
+
     // [HTTP 400] 此時段無營業
+    const food_closed = await pool.query(
+      'select * from restaurant_isClosed($1,$2);',
+      [options.start_date,tour_id]
+    );
+
+    if (food_closed.rows[0].isclosed === true) {
+        return resStatus({
+          res,
+          status: 400,
+          message: '此時段無營業',
+        });
+    }
   }
   next();
 }
