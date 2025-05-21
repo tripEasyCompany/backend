@@ -5,12 +5,16 @@ const cart_Validator = require('../../utils/Validator/cart_Validator.js');
 
 // [POST] 編號 28 : 使用者加入項目至購物車
 async function post_userCart(req, res, next) {
-  const { error : bodyError } = cart_Validator.baseSchema.validate(req.body);
+  const { user_id } = req.user;
+  const { error: bodyError } = cart_Validator.baseSchema.validate(req.body);
+  //const { error: paramsError } = cart_Validator.paramsSchema.validate(req.params);
 
   // [HTTP 400] 資料錯誤
-  if (bodyError) {
-    const message = bodyError?.details?.[0]?.message || '欄位驗證錯誤';
-    resStatus({
+  if (bodyError ) { //|| paramsError
+    const message =
+      //bodyError?.details?.[0]?.message || paramsError?.details?.[0]?.message || '欄位驗證錯誤';
+        bodyError?.details?.[0]?.message  || '欄位驗證錯誤';
+      resStatus({
       res: res,
       status: 400,
       message: message,
@@ -30,9 +34,10 @@ async function post_userCart(req, res, next) {
   }
 
   // [HTTP 400] 購物車內已有相同項目
-  const cartItemRepo = await pool.query('SELECT * FROM public."cart_item" WHERE tour_id = $1', [
-    tour_id,
-  ]);
+  const cartItemRepo = await pool.query(
+    'select ci.* from cart c inner join cart_item ci on c.cart_id = ci.cart_id WHERE tour_id = $1 and user_id = $2',
+    [tour_id, user_id]
+  );
   if (cartItemRepo.rowCount > 0) {
     return resStatus({
       res,
@@ -41,13 +46,15 @@ async function post_userCart(req, res, next) {
     });
   }
 
-  const { type, item, people, options } = req.body;
+  const { item, options } = req.body;
   if (item === 'hotel') {
     // [HTTP 400] 選擇的房間已無空房
-    const booking_room = await pool.query(
-      'select * from public.hotel_booking($1,$2,$3,$4);',
-      [options.room_type, options.start_date, options.end_date, tour_id]
-    );
+    const booking_room = await pool.query('select * from public.hotel_booking($1,$2,$3,$4);', [
+      options.room_type,
+      options.start_date,
+      options.end_date,
+      tour_id,
+    ]);
 
     if (booking_room.rowCount > 0) {
       const booking_count = booking_room.rows[0].booking_count;
@@ -62,10 +69,10 @@ async function post_userCart(req, res, next) {
     }
   } else if (item === 'food') {
     // [HTTP 400] 預約已額滿
-    const booking_food = await pool.query(
-      'select * from public.restaurant_booking($1,$2);',
-      [options.start_time, tour_id]
-    );
+    const booking_food = await pool.query('select * from public.restaurant_booking($1,$2);', [
+      options.start_time,
+      tour_id,
+    ]);
 
     if (booking_food.rowCount > 0) {
       const booking_count = booking_food.rows[0].booking_count;
@@ -81,8 +88,10 @@ async function post_userCart(req, res, next) {
 
     // [HTTP 400] 餐廳已關閉
     const food_time = await pool.query(
-      'SELECT * FROM restaurant_business_parsed WHERE restaurant_id = $1 AND $2::time BETWEEN start_time AND end_time;',
-      [tour_id,options.start_time]
+      `SELECT * FROM restaurant_business_parsed 
+       WHERE tour_id = $1 AND $2::timestamp::time BETWEEN start_time AND end_time 
+       AND week = TRIM(TO_CHAR($2::timestamp, 'FMDay'));`,
+      [tour_id, options.start_date]
     );
     if (food_time.rowCount === 0) {
       return resStatus({
@@ -93,17 +102,17 @@ async function post_userCart(req, res, next) {
     }
 
     // [HTTP 400] 此時段無營業
-    const food_closed = await pool.query(
-      'select * from restaurant_isClosed($1,$2);',
-      [options.start_date,tour_id]
-    );
+    const food_closed = await pool.query('select * from restaurant_isClosed($1,$2);', [
+      options.start_date,
+      tour_id,
+    ]);
 
     if (food_closed.rows[0].isclosed === true) {
-        return resStatus({
-          res,
-          status: 400,
-          message: '此時段無營業',
-        });
+      return resStatus({
+        res,
+        status: 400,
+        message: '此時段無營業',
+      });
     }
   }
   next();

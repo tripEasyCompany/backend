@@ -17,7 +17,7 @@ const hotelSchema = Joi.object({
 });
 
 const foodSchema = Joi.object({
-  start_time: Joi.date().iso().required().messages({
+  start_date: Joi.date().iso().required().messages({
     'any.required': '請填寫「預約時間」',
     'date.base': '「預約時間」必須是合法日期',
   }),
@@ -77,6 +77,15 @@ const baseSchema = Joi.object({
     'any.invalidCombo': '「type」與「item」的組合不合法',
   });
 
+const paramsSchema = Joi.object({
+  tour_id: Joi.string().uuid({ version: 'uuidv4' }).required().messages({
+    'string.base': '「tour_id」必須是文字',
+    'string.guid': '「tour_id」必須是有效的 UUID 格式',
+    'any.required': '「tour_id」為必填欄位',
+  }),
+});
+
 module.exports = {
   baseSchema,
+  paramsSchema,
 };
