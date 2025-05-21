@@ -1,0 +1,84 @@
+# 依賴目錄
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# 環境變數檔案
+.env
+.env.development
+.env.production
+.env.local
+
+# 日誌檔案
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 執行時暫存
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 覆蓋率目錄
+coverage/
+.nyc_output
+
+# 打包目錄
+dist/
+build/
+out/
+
+# 臨時檔案
+.tmp/
+.temp/
+
+# 快取
+.cache/
+.npm/
+.eslintcache
+
+# IDE 和編輯器資料夾
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.atom/
+.project
+.settings/
+.directory
+.c9/
+*.launch
+
+# TypeScript
+*.tsbuildinfo
+
+# 本地檔案
+local.*
+*.local.*
+*local.js
+*local.json
+
+# 測試相關
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# 用戶上傳檔案等可能存在的敏感內容
+/uploads/
+
+# 其他常忽略檔案
+.DS_Store
+Thumbs.db
+
+# 自訂義的 DB volumne 不要被git紀錄
+/pgdb-data/

@@ -1,0 +1,15 @@
+services:
+  api:
+    depends_on: [] # ✅ 覆蓋掉 migrate 依賴
+    volumes: []
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - POSTGRES_DB_HOST=${POSTGRES_DB_HOST}
+      - POSTGRES_DB_PORT=${POSTGRES_DB_PORT}
+      - POSTGRES_DB_USER=${POSTGRES_DB_USER}
+      - POSTGRES_DB_PASSWORD=${POSTGRES_DB_PASSWORD}
+      - POSTGRES_DB_NAME=${POSTGRES_DB_NAME}
+      - POSTGRES_DB_SSL=${POSTGRES_DB_SSL}
+    env_file:
+      - .env.production
