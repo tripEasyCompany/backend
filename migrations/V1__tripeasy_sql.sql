@@ -11,9 +11,15 @@ CREATE TABLE "user" (
     login_attempts smallint NULL, 
     locked_datetime TIMESTAMP WITH TIME zone NULL, 
     avatar_url VARCHAR(255) NULL,
+<<<<<<< HEAD
     preference1 smallint NULL,
     preference2 smallint NULL,
     preference3 smallint NULL,
+=======
+    preference1 smallint NOT NULL,
+    preference2 smallint NOT NULL,
+    preference3 smallint NOT NULL,
+>>>>>>> clean-safe-branch
     login_method smallint NULL, 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -289,6 +295,11 @@ CREATE TABLE "order_item" (
     order_id UUID NOT NULL,
     tour_id UUID NOT NULL,
     payment_status SMALLINT NOT NULL DEFAULT 0, -- 0: 未付款, 1: 已付款
+<<<<<<< HEAD
+=======
+    total_price FLOAT NOT NULL,
+    discount_price FLOAT NULL,
+>>>>>>> clean-safe-branch
     quantity INT NOT NULL,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NULL,

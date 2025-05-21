@@ -5,8 +5,6 @@ const controller = require('../controllers/collection');
 const auth = require('../middlewares/auth');
 const mw = require('../middlewares/collection/index');
 
-// middlewave
-
 // [GET] 17 : 使用者查看收藏項目
 router.get('/info/all', auth, mw.getCollection, controller.get_collection);
 

@@ -1,28 +1,21 @@
-const isValid = require('../../utils/isValid');
 const { pool } = require('../../config/database');
 const resStatus = require('../../utils/resStatus');
 
+// 資料驗證相關模組
+const isValidator = require('../../utils/Validator/collection_Validator.js');
+
 // [GET] 編號 17 : 使用者查看收藏項目
 async function getCollection(req, res, next) {
-  const { lang, page, limit } = req.query;
-  const user_id = req.user.id;
+  const { error } = isValidator.getSchema.validate(req.query, {
+    abortEarly: false,
+    stripUnknown: true,
+  });
 
-  //空值、語系、字串
-  //空值、為整數
-  //空值、為整數
-  if (
-    isValid.isEmpty(lang) ||
-    !isValid.isValidLang(lang) ||
-    isValid.isNotValidString(lang) ||
-    isValid.isEmpty(page) ||
-    !isValid.isStringToInt(page) ||
-    isValid.isEmpty(limit) ||
-    !isValid.isStringToInt(limit)
-  ) {
+  if (error) {
     resStatus({
-        res: res,
-        status: 400,
-        message: '欄位未填寫正確'
+      res: res,
+      status: 400,
+      message: '欄位未填寫正確',
     });
     return;
   }
@@ -37,7 +30,12 @@ async function postCollection(req, res, next) {
   const { tour_id } = req.params;
   const user_id = req.user.id;
 
-  if (isValid.isEmpty(tour_id) || isValid.isNotValidString(tour_id)) {
+  const { error } = isValidator.postSchema.validate(req.params, {
+    abortEarly: false,
+    stripUnknown: true,
+  });
+
+  if (error) {
     resStatus({
       res: res,
       status: 400,
@@ -79,11 +77,11 @@ async function deleteCollection(req, res, next) {
   const { favorite_id } = req.params;
   const user_id = req.user.id;
 
-  if (
-    isValid.isEmpty(favorite_id) ||
-    isValid.isNotValidString(favorite_id) ||
-    isValid.isUUIDParam(favorite_id)
-  ) {
+  const { error } = isValidator.deleteSchema.validate(req.params, {
+    abortEarly: false,
+    stripUnknown: true,
+  });
+  if (error) {
     resStatus({
       res: res,
       status: 400,
