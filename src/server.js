@@ -12,7 +12,15 @@ const collectionRouter = require('./routes/collection');
 const automationRouter = require('./routes/automation');
 const purchasesRouter = require('./routes/purchases');
 const homeRouter = require('./routes/home');
+
+const cartRouter = require('./routes/cart');
+const discountsRouter = require('./routes/discounts');
+const checkoutRouter = require('./routes/checkout');
 const adminRouter = require('./routes/admin');
+const promotionRouter = require('./routes/promotions');
+const couponRouter = require('./routes/coupons');
+const schedulerRouter = require('./routes/scheduler');
+
 const otherRouter = require('./routes/other');
 
 const app = express();
@@ -68,11 +76,31 @@ app.use(`/api/${version}/user/collection`, collectionRouter);
 // 編號 20~21 : 個人訂單項目
 app.use(`/api/${version}/user/purchases`, purchasesRouter);
 
+// 編號 22~25 : 查詢功能
+
 // 編號 26~27 : 首頁查詢項目
 app.use(`/api/${version}/user/home/search`, homeRouter);
 
-// 編號 42~45 : 個人用戶基本資料
+// 編號 28~31 : 購物車
+app.use(`/api/${version}/user/trade/cart`, cartRouter);
+
+// 編號 32~33 : 購物 ( 優惠卷 )
+app.use(`/api/${version}/user/trade/discounts`, discountsRouter);
+
+// 編號 34~36 : 購物功能
+app.use(`/api/${version}/user/checkout`, checkoutRouter);
+
+// 編號 42~45、68~69 : 用戶基本資料、優惠卷
 app.use(`/api/${version}/admin`, adminRouter);
+
+// 編號 57~59 : 促銷管理
+app.use(`/api/${version}/admin/promotions`, promotionRouter);
+
+// 編號 40、52、60 : 自動化排程
+app.use(`/api/${version}/web/scheduler`, schedulerRouter);
+
+// 編號 61~67 : 優惠卷
+app.use(`/api/${version}/admin/coupons`, couponRouter);
 
 // 編號 70~71 : 其他
 app.use(`/api/${version}/web/filter`, otherRouter);

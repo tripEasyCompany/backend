@@ -12,6 +12,7 @@ CREATE TABLE "user" (
     locked_datetime TIMESTAMP WITH TIME zone NULL, 
     avatar_url VARCHAR(255) NULL,
 <<<<<<< HEAD
+<<<<<<< HEAD
     preference1 smallint NULL,
     preference2 smallint NULL,
     preference3 smallint NULL,
@@ -20,6 +21,11 @@ CREATE TABLE "user" (
     preference2 smallint NOT NULL,
     preference3 smallint NOT NULL,
 >>>>>>> clean-safe-branch
+=======
+    preference1 smallint NOT NULL,
+    preference2 smallint NOT NULL,
+    preference3 smallint NOT NULL,
+>>>>>>> origin/main
     login_method smallint NULL, 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -296,10 +302,15 @@ CREATE TABLE "order_item" (
     tour_id UUID NOT NULL,
     payment_status SMALLINT NOT NULL DEFAULT 0, -- 0: 未付款, 1: 已付款
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     total_price FLOAT NOT NULL,
     discount_price FLOAT NULL,
 >>>>>>> clean-safe-branch
+=======
+    total_price FLOAT NOT NULL,
+    discount_price FLOAT NULL,
+>>>>>>> origin/main
     quantity INT NOT NULL,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NULL,
@@ -424,5 +435,6 @@ CREATE TABLE "user_coupon" (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES "user"(user_id),
     FOREIGN KEY (order_id) REFERENCES "orders"(order_id),
-    FOREIGN KEY (coupon_id) REFERENCES "coupon"(coupon_id)
+    FOREIGN KEY (coupon_id) REFERENCES "coupon"(coupon_id),
+    UNIQUE (user_id, coupon_id) -- 確保每個使用者只能擁有一個優惠卷
 );

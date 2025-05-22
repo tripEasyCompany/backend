@@ -1,8 +1,6 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
+const { reversePreferenceMap } = require('../utils/Validator/userprofile_Validator');
 
 // [GET] 編號 26 : 使用者查看旅行團、背包客熱門、促銷等項目
 async function get_home_Product(req, res, next) {
@@ -85,13 +83,39 @@ async function get_home_Product(req, res, next) {
       }
     }
 
-    // [HTTP 200] 呈現資料
-    resStatus({
-      res: res,
-      status: 200,
-      message: '查詢成功',
-      dbdata: tourData.rows,
-    });
+
+    if (tourData.rows.length > 0) {
+      const transformedRows = tourData.rows.map((row) => {
+        // 將偏好分類數字轉換為文字陣列
+        const preferences = [
+          reversePreferenceMap[row['偏好分類1']],
+          reversePreferenceMap[row['偏好分類2']],
+          reversePreferenceMap[row['偏好分類3']],
+        ];
+
+        // 回傳新的物件，保留其他欄位，並加入「偏好分類」欄位，同時移除 1/2/3
+        const { 偏好分類1, 偏好分類2, 偏好分類3, ...rest } = row;
+
+        return {
+          ...rest,
+          偏好分類: preferences.filter(Boolean), // 移除 undefined/null
+        };
+      });
+
+      // [HTTP 200] 呈現數據
+      resStatus({
+        res,
+        status: 200,
+        message: '查詢成功',
+        dbdata: transformedRows,
+      });
+    } else {
+      resStatus({
+        res,
+        status: 200,
+        message: '查無資料',
+      });
+    }
   } catch (error) {
     // [HTTP 500] 伺服器異常
     console.error('❌ 伺服器內部錯誤:', error);
