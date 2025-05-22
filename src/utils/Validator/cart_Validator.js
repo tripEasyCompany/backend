@@ -1,5 +1,8 @@
 const Joi = require('joi');
 
+// ✅ 可集中管理所有支援語言
+const supportedLanguages = ['zh-TW', 'en-US'];
+
 const hotelSchema = Joi.object({
   start_date: Joi.date().iso().required().messages({
     'any.required': '請填寫「入住時間」',
@@ -93,8 +96,34 @@ const cartIDSchema = Joi.object({
   }),
 });
 
+const commonSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1).messages({
+    'number.base': '「page」必須是數字',
+    'number.integer': '「page」必須是整數',
+    'number.min': '「page」至少是 1',
+    'any.required': '「page」為必填欄位',
+  }),
+
+  limit: Joi.number().integer().min(1).default(4).messages({
+    'number.base': '「limit」必須是數字',
+    'number.integer': '「limit」必須是整數',
+    'number.min': '「limit」至少是 1',
+    'any.required': '「limit」為必填欄位',
+  }),
+
+  lang: Joi.string()
+    .valid(...supportedLanguages)
+    .default('zh-TW')
+    .messages({
+      'any.only': `「lang」僅支援：${supportedLanguages.join(', ')}`,
+      'string.base': '「lang」必須是文字',
+      'any.required': '「lang」為必填欄位',
+    }),
+});
+
 module.exports = {
   baseSchema,
   paramsSchema,
-  cartIDSchema
+  cartIDSchema,
+  commonSchema,
 };

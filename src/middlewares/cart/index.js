@@ -10,11 +10,12 @@ async function post_userCart(req, res, next) {
   //const { error: paramsError } = cart_Validator.paramsSchema.validate(req.params);
 
   // [HTTP 400] 資料錯誤
-  if (bodyError ) { //|| paramsError
+  if (bodyError) {
+    //|| paramsError
     const message =
       //bodyError?.details?.[0]?.message || paramsError?.details?.[0]?.message || '欄位驗證錯誤';
-        bodyError?.details?.[0]?.message  || '欄位驗證錯誤';
-      resStatus({
+      bodyError?.details?.[0]?.message || '欄位驗證錯誤';
+    resStatus({
       res: res,
       status: 400,
       message: message,
@@ -124,10 +125,9 @@ async function delete_userCart(req, res, next) {
   const { error: paramsError } = cart_Validator.cartIDSchema.validate(req.params);
 
   // [HTTP 400] 資料錯誤
-  if (paramsError ) {
-    const message =
-        paramsError?.details?.[0]?.message  || '欄位驗證錯誤';
-      resStatus({
+  if (paramsError) {
+    const message = paramsError?.details?.[0]?.message || '欄位驗證錯誤';
+    resStatus({
       res: res,
       status: 400,
       message: message,
@@ -137,7 +137,9 @@ async function delete_userCart(req, res, next) {
 
   // [HTTP 404] 查無此購物車項目
   const { cart_item_id } = req.params;
-  const tourRepo = await pool.query('SELECT * FROM public."cart_item" WHERE cart_item_id = $1', [cart_item_id]);
+  const tourRepo = await pool.query('SELECT * FROM public."cart_item" WHERE cart_item_id = $1', [
+    cart_item_id,
+  ]);
   if (tourRepo.rowCount === 0) {
     return resStatus({
       res,
@@ -158,7 +160,7 @@ async function patch_userCart(req, res, next) {
   if (bodyError || paramsError) {
     const message =
       bodyError?.details?.[0]?.message || paramsError?.details?.[0]?.message || '欄位驗證錯誤';
-      resStatus({
+    resStatus({
       res: res,
       status: 400,
       message: message,
@@ -168,7 +170,10 @@ async function patch_userCart(req, res, next) {
 
   // [HTTP 404] 查無此購物車項目
   const { cart_item_id } = req.params;
-  const cartItemRepo = await pool.query('SELECT * FROM public."cart_item" WHERE cart_item_id = $1', [cart_item_id]);
+  const cartItemRepo = await pool.query(
+    'SELECT * FROM public."cart_item" WHERE cart_item_id = $1',
+    [cart_item_id]
+  );
   if (cartItemRepo.rowCount === 0) {
     return resStatus({
       res,
@@ -177,9 +182,7 @@ async function patch_userCart(req, res, next) {
     });
   }
 
-  const tourRepo = await pool.query('SELECT tour_id FROM public."cart" WHERE cart_id = $1', [cartItemRepo.rows[0].cart_id]);
-  const tour_id = tourRepo.rows[0].tour_id;
-
+  const tour_id = cartItemRepo.rows[0].tour_id;
   const { item, options } = req.body;
   if (item === 'hotel') {
     // [HTTP 400] 選擇的房間已無空房
@@ -253,9 +256,37 @@ async function patch_userCart(req, res, next) {
 }
 
 // [GET] 編號 31 : 使用者查看購物車內容
+async function get_userCart(req, res, next) {
+  const { error: queryError } = cart_Validator.commonSchema.validate(req.query);
+
+  // [HTTP 400] 資料錯誤
+  if (queryError) {
+    const message = queryError?.details?.[0]?.message || '欄位驗證錯誤';
+    resStatus({
+      res: res,
+      status: 400,
+      message: message,
+    });
+    return;
+  }
+
+  // [HTTP 404] 查無此人物
+  const { id } = req.user;
+  const userRepo = await pool.query('SELECT * FROM public."user" WHERE user_id = $1', [id]);
+  if (userRepo.rowCount === 0) {
+    return resStatus({
+      res,
+      status: 404,
+      message: '查無此人物',
+    });
+  }
+
+  next();
+}
 
 module.exports = {
   post_userCart,
   delete_userCart,
-  patch_userCart
+  patch_userCart,
+  get_userCart,
 };
