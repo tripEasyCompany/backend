@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const controller = require('../controllers/checkout');
 
 // middleware 的內容
 const auth = require('../middlewares/auth');
 const authRole = require('../middlewares/authorizeRoles');
 
+// [POST] 編號 89 : 使用者進入填寫畫面後產生訂單
+router.post('/order/:cart_id', auth, authRole('User'));
+
 // [GET] 編號 34 : 使用者進入填寫畫面後預帶使用者資訊
-router.get('/userinfo', auth, authRole('User'));
+router.get('/userinfo/:order_id', auth, authRole('User'),controller.get_user_CheckoutUserInfo);
 
 // [POST]] 編號 35 : 使用者輸入個人資料、選擇想要付款方式
 router.post('/preview', auth, authRole('User'));
