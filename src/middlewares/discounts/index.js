@@ -63,7 +63,6 @@ async function postDiscounts(req, res, next) {
     // [HTTP 409] 優惠券已過期
     const now = new Date();
     const endDate = new Date(couponRepo.rows[0].expire_date);
-    console.log(endDate);
     if (now > endDate) {
       resStatus({
         res: res,
@@ -73,7 +72,7 @@ async function postDiscounts(req, res, next) {
       return;
     }
   } else if (req.body.type === 'point') {
-    // [HTTP 422] 超出可使用的點數
+    // [HTTP 409] 超出可使用的點數
     const pointRepo = await pool.query(
       'SELECT * FROM public."user_level_point_coupon" ucl where 使用者編號 = $1',
       [userId]
@@ -100,8 +99,40 @@ async function postDiscounts(req, res, next) {
   next();
 }
 
-// [POST] 編號 33 : 使用者取消優惠卷、累積積分
+// [GET] 編號 33 : 使用者取消優惠卷、累積積分
+async function getDiscounts(req, res, next) {
+  const userId = req.user.id;
+  const { error } = discounts_Validatior.orderIDSchema.validate(req.params);
+
+  // [HTTP 400] 資料錯誤
+  if (error) {
+    const message = error?.details[0]?.message || '欄位驗證錯誤';
+    resStatus({
+      res: res,
+      status: 400,
+      message: message,
+    });
+    return;
+  }
+
+  // [HTTP 400] 查無訂單編號
+  const orderRepo = await pool.query(
+    'SELECT * FROM public."orders" where order_id = $1 and user_id = $2',
+    [req.params.order_id, userId]
+  );
+  if (orderRepo.rowCount === 0) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '查無訂單編號',
+    });
+    return;
+  }
+
+  next();
+}
 
 module.exports = {
   postDiscounts,
+  getDiscounts,
 };

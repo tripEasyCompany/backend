@@ -25,10 +25,22 @@ router.get(
   controller.get_user_CheckoutUserInfo
 );
 
-// [POST]] 編號 35 : 使用者輸入個人資料、選擇想要付款方式
-router.post('/preview/:order_id', auth, authRole('User'));
+// [PATCH] 編號 35 : 使用者輸入個人資料、選擇想要付款方式
+router.patch(
+  '/preview/:order_id',
+  auth,
+  authRole('User'),
+  mw.patch_userOrderPreview,
+  controller.patch_user_CheckoutUserInfo
+);
 
 // [GET] 編號 36 : 使用者確認購買項目、總金額
-router.get('/summary/:order_id', auth, authRole('User'));
+router.get(
+  '/summary/:order_id',
+  auth,
+  authRole('User'),
+  mw.get_userCheckOrder,
+  controller.get_user_CheckoutOrder
+);
 
 module.exports = router;
