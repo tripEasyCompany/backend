@@ -6,15 +6,31 @@ const discounts_Validatior = require('../../utils/Validator/discounts_Validatior
 // [POST] 編號 32 : 使用者輸入優惠卷、累積積分
 async function postDiscounts(req, res, next) {
   const userId = req.user.id;
-  const { error } = discounts_Validatior.baseschema.validate(req.body);
+  const { error: bodyError } = discounts_Validatior.baseschema.validate(req.body);
+  const { error: orderError } = discounts_Validatior.orderIDSchema.validate(req.params);
 
   // [HTTP 400] 資料錯誤
-  if (error) {
-    const message = error.details[0]?.message || '欄位驗證錯誤';
+  if (bodyError || orderError) {
+    const message =
+      bodyError?.details[0]?.message || orderError?.details[0]?.message || '欄位驗證錯誤';
     resStatus({
       res: res,
       status: 400,
       message: message,
+    });
+    return;
+  }
+
+  // [HTTP 400] 查無訂單編號
+  const orderRepo = await pool.query(
+    'SELECT * FROM public."orders" where order_id = $1 and user_id = $2',
+    [req.params.order_id, userId]
+  );
+  if (orderRepo.rowCount === 0) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '查無訂單編號',
     });
     return;
   }
@@ -84,7 +100,7 @@ async function postDiscounts(req, res, next) {
   next();
 }
 
-// [DELETE] 編號 33 : 使用者取消優惠卷、累積積分
+// [POST] 編號 33 : 使用者取消優惠卷、累積積分
 
 module.exports = {
   postDiscounts,
