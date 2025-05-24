@@ -1,0 +1,75 @@
+const resStatus = require('../../utils/resStatus.js');
+const { pool } = require('../../config/database');
+
+const product_Validator = require('../../utils/Validator/product_Validator.js');
+
+// [GET] 編號 22 : 使用者查詢旅遊項目
+
+// [GET] 編號 23 : 使用者查看旅遊項目詳細資料
+
+// [GET] 編號 24 : 使用者查看細項資料好評分數、評論
+async function get_tourReview(req, res, next) {
+  //const { error: paramsError } = product_Validator.tourIDSchema.validate(req.params);
+  const { error: queryError } = product_Validator.reviewSchema.validate(req.query);
+
+  // [HTTP 400] 資料錯誤
+  if (queryError) {
+    //paramsError ||
+    const message = queryError?.details?.[0]?.message || '欄位驗證錯誤'; // paramsError?.details?.[0]?.message ||
+    resStatus({
+      res: res,
+      status: 400,
+      message: message,
+    });
+    return;
+  }
+
+  // [HTTP 404] 查無此購物車項目
+  const { tour_id } = req.params;
+  const tourRepo = await pool.query('SELECT * FROM public."tour" WHERE tour_id = $1', [tour_id]);
+  if (tourRepo.rowCount === 0) {
+    return resStatus({
+      res,
+      status: 404,
+      message: '查無此旅遊項目',
+    });
+  }
+
+  next();
+}
+
+// [GET] 編號 25 : 使用者查看細項資料隱藏玩法
+async function get_tourHiddenPlay(req, res, next) {
+  //const { error: paramsError } = product_Validator.tourIDSchema.validate(req.params);
+  const { error: queryError } = product_Validator.hiddenPlaySchema.validate(req.query);
+
+  // [HTTP 400] 資料錯誤
+  if (queryError) {
+    // paramsError ||
+    const message = queryError?.details?.[0]?.message || '欄位驗證錯誤'; // paramsError?.details?.[0]?.message ||
+    resStatus({
+      res: res,
+      status: 400,
+      message: message,
+    });
+    return;
+  }
+
+  // [HTTP 404] 查無此購物車項目
+  const { tour_id } = req.params;
+  const tourRepo = await pool.query('SELECT * FROM public."tour" WHERE tour_id = $1', [tour_id]);
+  if (tourRepo.rowCount === 0) {
+    return resStatus({
+      res,
+      status: 404,
+      message: '查無此旅遊項目',
+    });
+  }
+
+  next();
+}
+
+module.exports = {
+  get_tourReview,
+  get_tourHiddenPlay,
+};

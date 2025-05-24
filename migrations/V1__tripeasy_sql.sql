@@ -271,9 +271,9 @@ CREATE TABLE "orders" (
     user_id UUID NOT NULL,
     address VARCHAR(255)  NULL,
     phone VARCHAR(50)  NULL,
-    payment_type VARCHAR(50) NOT NULL,
+    payment_type VARCHAR(50) NULL,
     discount_type VARCHAR(50)  NULL,
-    payment_status SMALLINT NOT NULL DEFAULT 0,  -- 0: 未付款, 1: 已付款
+    payment_status SMALLINT NOT NULL DEFAULT -1,  -- -1: 資料剛建立, 0: 資料填寫完成，未付款, 1: 已付款, 2: 已取消, 3: 已退款, 4: 付款逾時
     total_price FLOAT NOT NULL,
     discount_price FLOAT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -288,7 +288,7 @@ CREATE TABLE "order_item" (
     order_item_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_id UUID NOT NULL,
     tour_id UUID NOT NULL,
-    payment_status SMALLINT NOT NULL DEFAULT 0, -- 0: 未付款, 1: 已付款
+    payment_status SMALLINT NOT NULL DEFAULT -1, -- -1: 資料剛建立, 0: 資料填寫完成，未付款, 1: 已付款, 2: 已取消, 3: 已退款, 4: 付款逾時
     total_price FLOAT NOT NULL,
     discount_price FLOAT NULL,
     quantity INT NOT NULL,
@@ -416,5 +416,5 @@ CREATE TABLE "user_coupon" (
     FOREIGN KEY (user_id) REFERENCES "user"(user_id),
     FOREIGN KEY (order_id) REFERENCES "orders"(order_id),
     FOREIGN KEY (coupon_id) REFERENCES "coupon"(coupon_id),
-    UNIQUE (user_id, coupon_id) -- 確保每個使用者只能擁有一個優惠卷
+    UNIQUE (user_id, coupon_id)
 );
