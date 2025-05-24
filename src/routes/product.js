@@ -13,9 +13,14 @@ router.get('/', auth_not_manda);
 router.get('/:tour_id', auth_not_manda);
 
 // [GET] 編號 24 : 使用者查看細項資料好評分數、評論
-router.get('/:tour_id/reviews', auth_not_manda);
+router.get('/:tour_id/reviews', auth_not_manda, mw.get_tourReview, controller.get_tourReview);
 
 // [GET] 編號 25 : 使用者查看細項資料隱藏玩法
-router.get('/:tour_id/hidden-shares', auth_not_manda);
+router.get(
+  '/:tour_id/hidden-shares',
+  auth_not_manda,
+  mw.get_tourHiddenPlay,
+  controller.get_tourHiddenPlay
+);
 
 module.exports = router;

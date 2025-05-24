@@ -139,7 +139,6 @@ async function patch_user_CheckoutUserInfo(req, res, next) {
       [0, order_id]
     );
 
-
     if (type === 'coupon') {
       const couponRepo = await client.query(
         `SELECT * FROM public."user_couponList" where coupon_id = $1 and user_id = $2`,

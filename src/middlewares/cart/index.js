@@ -7,14 +7,12 @@ const cart_Validator = require('../../utils/Validator/cart_Validator.js');
 async function post_userCart(req, res, next) {
   const { id } = req.user;
   const { error: bodyError } = cart_Validator.baseSchema.validate(req.body);
-  //const { error: paramsError } = cart_Validator.paramsSchema.validate(req.params);
+  const { error: paramsError } = cart_Validator.paramsSchema.validate(req.params);
 
   // [HTTP 400] 資料錯誤
-  if (bodyError) {
-    //|| paramsError
+  if (bodyError || paramsError) {
     const message =
-      //bodyError?.details?.[0]?.message || paramsError?.details?.[0]?.message || '欄位驗證錯誤';
-      bodyError?.details?.[0]?.message || '欄位驗證錯誤';
+      bodyError?.details?.[0]?.message || paramsError?.details?.[0]?.message || '欄位驗證錯誤';
     resStatus({
       res: res,
       status: 400,

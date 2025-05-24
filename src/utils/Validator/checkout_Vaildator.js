@@ -61,7 +61,7 @@ const postSchema = Joi.object({
     }),
   }),
 
- discount: Joi.object({
+  discount: Joi.object({
     type: Joi.string().valid('coupon', 'point').optional().messages({
       'any.only': '優惠方式只能是 coupon 或 point',
     }),
