@@ -134,6 +134,12 @@ async function patch_user_CheckoutUserInfo(req, res, next) {
       [address, phone_number, payment_method, type, 0, order_id, id]
     );
 
+    await client.query(
+      `UPDATE public."order_item" SET payment_status = $1 WHERE order_id = $2 RETURNING *`,
+      [0, order_id]
+    );
+
+
     if (type === 'coupon') {
       const couponRepo = await client.query(
         `SELECT * FROM public."user_couponList" where coupon_id = $1 and user_id = $2`,
@@ -141,10 +147,20 @@ async function patch_user_CheckoutUserInfo(req, res, next) {
       );
 
       await client.query(
+        `UPDATE public."user_coupon" SET status = $1, order_id = $4 WHERE coupon_id = $2 and user_id = $3 RETURNING *`,
+        [-1, coupon_id, id, order_id]
+      );
+
+      await client.query(
         `UPDATE public."orders" SET discount_price = $1 WHERE order_id = $2 and user_id = $3 RETURNING *`,
         [orderRepo.rows[0].total_price * couponRepo.rows[0].discount, order_id, id]
       );
     } else if (type === 'point') {
+      await client.query(
+        `Insert into public."point_record" (user_id,order_id,type,point) Values ($1,$2,$3,$4) RETURNING *`,
+        [id, order_id, '減少_確認中', 0 - used_point]
+      );
+
       await client.query(
         `UPDATE public."orders" SET discount_price = $1 WHERE order_id = $2 and user_id = $3 RETURNING *`,
         [orderRepo.rows[0].total_price - used_point * 0.8, order_id, id]
@@ -197,6 +213,18 @@ async function get_user_CheckoutOrder(req, res, next) {
       [order_id]
     );
 
+    const couponRepo = await pool.query(
+      `select * from public."user_couponList" where user_id = $1 and order_id = $2 and status = -1`,
+      [id, order_id]
+    );
+
+    const pointRepo = await pool.query(
+      `select * from public."point_record" where user_id = $1 and order_id = $2 and type = '減少_確認中'`,
+      [id, order_id]
+    );
+
+    const get_point = orderRepo.rows[0].total_price * 0.1;
+
     resStatus({
       res,
       status: 200,
@@ -211,9 +239,9 @@ async function get_user_CheckoutOrder(req, res, next) {
         payment_method: orderRepo.rows[0].payment_type,
         discount: {
           type: orderRepo.rows[0].discount_type,
-          coupon_id: '',
-          coupon: '',
-          used_point: 0,
+          coupon_id: couponRepo.rowCount > 0 ? couponRepo.rows[0].coupon_id : null,
+          coupon: couponRepo.rowCount > 0 ? couponRepo.rows[0].code : null,
+          used_point: pointRepo.rowCount > 0 ? Math.abs(pointRepo.rows[0].point) : 0,
         },
         orders: orderItemRepo.rows.map((item) => ({
           order_id: item.order_id,
@@ -236,7 +264,7 @@ async function get_user_CheckoutOrder(req, res, next) {
           total_items: orderItemRepo.rows[0].total_count,
           total_price: orderRepo.rows[0].total_price,
           discount_price: orderRepo.rows[0].discount_price,
-          get_point: 0,
+          get_point: get_point,
         },
       },
     });
