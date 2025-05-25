@@ -7,7 +7,7 @@ const mw = require('../middlewares/product/index');
 const auth_not_manda = require('../middlewares/auth_not_mandatory');
 
 // [GET] 編號 22 : 使用者查詢旅遊項目
-router.get('/', auth_not_manda, mw.get_tourData);
+router.get('/', auth_not_manda, mw.get_tourData,controller.get_tourData);
 
 // [GET] 編號 23 : 使用者查看旅遊項目詳細資料
 router.get('/:tour_id', auth_not_manda, mw.get_tourDetail, controller.get_tourDetails);

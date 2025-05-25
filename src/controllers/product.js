@@ -2,6 +2,53 @@ const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
 
 // [GET] 編號 22 : 使用者查詢旅遊項目
+async function get_tourData(req, res, next) {
+  const { id } = req.user || {};
+  const { tour_id } = req.params;
+  const {
+    type,
+    item,
+    tag,
+    country,
+    region,
+    min_price,
+    max_price,
+    start_date,
+    end_date,
+    keyword,
+    duration,
+    page,
+    limit,
+    sort_by,
+    order,
+    lang,
+  } = req.query;
+
+  try {
+    const tourDataRepo = await pool.query(
+      `SELECT * from public."tour_travel"($1) t
+       WHERE t.旅遊編號 = $2`,
+      [id, tour_id]
+    );
+
+    if (tourDataRepo.rowCount > 0) {
+      return resStatus({
+        res,
+        status: 200,
+        message: '查詢成功',
+      });
+    } else {
+      return resStatus({
+        res,
+        status: 200,
+        message: '查無此旅遊項目',
+      });
+    }
+  } catch (error) {
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
 
 // [GET] 編號 23 : 使用者查看旅遊項目詳細資料
 async function get_tourDetails(req, res, next) {
@@ -180,6 +227,7 @@ async function get_tourHiddenPlay(req, res, next) {
 }
 
 module.exports = {
+  get_tourData,
   get_tourDetails,
   get_tourReview,
   get_tourHiddenPlay,
