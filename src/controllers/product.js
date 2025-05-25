@@ -4,6 +4,58 @@ const { pool } = require('../config/database');
 // [GET] 編號 22 : 使用者查詢旅遊項目
 
 // [GET] 編號 23 : 使用者查看旅遊項目詳細資料
+async function get_tourDetails(req, res, next) {
+  const { id } = req.user || {};
+  const { tour_id } = req.params;
+  const { lang } = req.query;
+
+  try {
+    const tourRepo = await pool.query(
+      `SELECT type, item
+       FROM public."tour" t
+       WHERE t.tour_id = $1 and status = 1`,
+      [tour_id]
+    );
+
+    const type = tourRepo.rows[0]?.type;
+    const item = tourRepo.rows[0]?.item;
+
+    let sql = '';
+    let params = [tour_id, id];
+
+    // 決定查詢的 table 名稱
+    let detailTable = '';
+    if (type === 'tourgroup' && item === 'travel') {
+      detailTable = 'public.tour_tour_detail';
+    } else if (type === 'backpacker') {
+      if (item === 'spot') detailTable = 'public.tour_tour_detail';
+      if (item === 'hotel') detailTable = 'public.tour_hotel';
+      if (item === 'food') detailTable = 'public.tour_restaurant';
+    }
+
+    // 組 where 條件
+    sql = `SELECT * FROM ${detailTable}($2) WHERE 旅遊編號 = $1`;
+    const tourDetailsRepo = await pool.query(sql, params);
+
+    if (tourDetailsRepo.rowCount > 0) {
+      return resStatus({
+        res,
+        status: 200,
+        message: '查詢成功',
+        dbdata: tourDetailsRepo.rows,
+      });
+    } else {
+      return resStatus({
+        res,
+        status: 200,
+        message: '查無此旅遊項目',
+      });
+    }
+  } catch (error) {
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
 
 // [GET] 編號 24 : 使用者查看細項資料好評分數、評論
 async function get_tourReview(req, res, next) {
@@ -36,7 +88,7 @@ async function get_tourReview(req, res, next) {
     );
 
     if (reviewsRepo.rowCount > 0) {
-      resStatus({
+      return resStatus({
         res,
         status: 200,
         message: '查詢成功',
@@ -94,25 +146,24 @@ async function get_tourHiddenPlay(req, res, next) {
     );
 
     if (hiddenPlayRepo.rowCount > 0) {
-      resStatus({
+      return resStatus({
         res,
         status: 200,
         message: '查詢成功',
-        dbdata: 
-          hiddenPlayRepo.rows.map((row) => ({
-            shares_id: row.hidden_play_id,
-            name: row.名稱,
-            avatar: row['個人照片 Url'],
-            level: {
-              name: row.旅遊等級名稱,
-              level: row.旅遊等級,
-              badge_icon: row['旅遊徽章 Url'],
-            },
-            title: row.type,
-            content: row.content,
-            url: row.share_url,
-            create_date: row.created_at,
-          })),
+        dbdata: hiddenPlayRepo.rows.map((row) => ({
+          shares_id: row.hidden_play_id,
+          name: row.名稱,
+          avatar: row['個人照片 Url'],
+          level: {
+            name: row.旅遊等級名稱,
+            level: row.旅遊等級,
+            badge_icon: row['旅遊徽章 Url'],
+          },
+          title: row.type,
+          content: row.content,
+          url: row.share_url,
+          create_date: row.created_at,
+        })),
       });
     } else {
       return resStatus({
@@ -129,6 +180,7 @@ async function get_tourHiddenPlay(req, res, next) {
 }
 
 module.exports = {
+  get_tourDetails,
   get_tourReview,
   get_tourHiddenPlay,
 };
