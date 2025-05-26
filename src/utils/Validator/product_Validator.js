@@ -22,14 +22,12 @@ const supportedTags = [
 const queryschema = Joi.object({
   type: Joi.string()
     .valid(...supportedType)
-    .required()
+    .optional()
     .messages({
-      'any.required': '請輸入「type」',
       'any.only': `「type」僅能為 ${supportedType.join('、')}`,
       'string.base': '「type」必須是字串',
     }),
-  item: Joi.string().required().messages({
-    'any.required': '請輸入「item」',
+  item: Joi.string().optional().messages({
     'string.base': '「item」必須是字串',
   }),
   tag: Joi.string()

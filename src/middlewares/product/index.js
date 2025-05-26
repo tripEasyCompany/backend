@@ -28,9 +28,8 @@ async function get_tourDetail(req, res, next) {
   const { error: queryError } = product_Validator.detailsSchema.validate(req.query);
 
   // [HTTP 400] 資料錯誤
-  if (queryError) {
-    //paramsError ||
-    const message = queryError?.details?.[0]?.message || '欄位驗證錯誤'; // paramsError?.details?.[0]?.message ||
+  if (paramsError || queryError) {
+    const message = paramsError?.details?.[0]?.message || queryError?.details?.[0]?.message || '欄位驗證錯誤'; 
     resStatus({
       res: res,
       status: 400,
