@@ -9,16 +9,34 @@ const authRole = require('../middlewares/authorizeRoles');
 const mw = require('../middlewares/admin/index');
 
 // [GET] 42 : 管理者查看註冊用戶資料
-router.get('/', auth, mw.getUserinfo, controller.get_userinfo);
+router.get('/members', auth, authRole('admin'), mw.getUserinfo, controller.get_userinfo);
 
 // [GET] 43 : 管理者查看註冊用戶詳細資料
-router.get('/members/:user_id', auth, mw.getUserDetailinfo, controller.get_userDetailinfo);
+router.get(
+  '/members/:user_id',
+  auth,
+  authRole('admin'),
+  mw.getUserDetailinfo,
+  controller.get_userDetailinfo
+);
 
 // [PATCH] 44 : 管理者修改註冊用戶權限
-router.patch('/members/roles', auth, mw.patchUserPurview, controller.patch_userPurview);
+router.patch(
+  '/members/roles',
+  auth,
+  authRole('admin'),
+  mw.patchUserPurview,
+  controller.patch_userPurview
+);
 
 // [GET] 45 : 管理者查找使用者資料
-router.get('/members/list/:user_id', auth, mw.getUserSearch, controller.get_userSearch);
+router.get(
+  '/members/list/:user_id',
+  auth,
+  authRole('admin'),
+  mw.getUserSearch,
+  controller.get_userSearch
+);
 
 // [GET] 編號 68 : 管理者查看使用者的優惠卷清單
 router.get(

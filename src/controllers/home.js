@@ -83,7 +83,6 @@ async function get_home_Product(req, res, next) {
       }
     }
 
-
     if (tourData.rows.length > 0) {
       const transformedRows = tourData.rows.map((row) => {
         // 將偏好分類數字轉換為文字陣列
