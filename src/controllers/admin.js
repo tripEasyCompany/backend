@@ -112,7 +112,7 @@ async function post_Changeinfo(req, res, next) {
       )
     );
     await Promise.all(insertPromises);
-    
+
     resStatus({
       res: res,
       status: 201,
@@ -123,6 +123,26 @@ async function post_Changeinfo(req, res, next) {
     console.error('❌ 伺服器內部錯誤:', error);
     next(error);
   }
+}
+
+// [GET] 54 : 管理者查看異動通知
+async function get_Changeinfo(req, res, next) {
+  // try {
+  //   const changeInfoRepo = await pool.query(
+  //     'SELECT * FROM public."change_info" ORDER BY created_at DESC'
+  //   );
+
+  //   resStatus({
+  //     res: res,
+  //     status: 200,
+  //     message: '查詢成功',
+  //     dbdata: changeInfoRepo.rows,
+  //   });
+  // } catch (error) {
+  //   // [HTTP 500] 伺服器異常
+  //   console.error('❌ 伺服器內部錯誤:', error);
+  //   next(error);
+  // }
 }
 
 // [GET] 編號 68 : 管理者查看使用者的優惠卷清單
