@@ -101,6 +101,30 @@ async function get_userSearch(req, res, next) {
   }
 }
 
+// [POST] 53 : 管理者新增異動通知
+async function post_Changeinfo(req, res, next) {
+  try {
+    const { tour_ids, message } = req.body;
+
+    const insertPromises = tour_ids.map((tour_id) => pool.query(
+        'INSERT INTO public."change_info" (tour_id, content) VALUES ($1, $2)',
+        [tour_id, message]
+      )
+    );
+    await Promise.all(insertPromises);
+    
+    resStatus({
+      res: res,
+      status: 201,
+      message: '新增成功',
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
 // [GET] 編號 68 : 管理者查看使用者的優惠卷清單
 async function get_user_couponList(req, res, next) {
   const { user_id } = req.params;

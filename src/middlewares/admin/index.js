@@ -145,6 +145,16 @@ async function getUserSearch(req, res, next) {
 async function post_Changeinfo(req, res, next) {
   const { tour_ids, message } = req.body;
 
+  // [400] 欄位未填寫正確 tour_ids=[]
+  if( tour_ids.length === 0) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '欄位未填寫正確',
+    })
+    return;
+  };
+
   // [400] 已存在異動通知
   for (const tour_id of tour_ids) {
     const notificationResult = await pool.query(
