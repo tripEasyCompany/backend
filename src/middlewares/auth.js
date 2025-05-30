@@ -24,11 +24,6 @@ function verifyToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
-<<<<<<< HEAD
-    console.log('[Token payload]', decoded); // <== 看看有沒有 id
-=======
-
->>>>>>> clean-safe-branch
     next();
   } catch (err) {
     // 分辨過期與其他無效

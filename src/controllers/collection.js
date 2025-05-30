@@ -1,5 +1,6 @@
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
+const { reversePreferenceMap } = require('../utils/Validator/userprofile_Validator');
 
 const collectionController = {
   // [GET] 17 : 使用者查看收藏項目
@@ -14,6 +15,44 @@ const collectionController = {
         'SELECT * FROM public."user_favorite" WHERE 收藏人員編號 = $1 ORDER BY 建立時間 DESC LIMIT $2 OFFSET $3',
         [user_id, limit, (page - 1) * limit]
       );
+
+      if (collectionRepo.rowCount > 0) {
+        const transformedRows = collectionRepo.rows.map((row) => {
+          // 將偏好分類數字轉換為文字陣列
+          const preferences = [
+            reversePreferenceMap[row.偏好分類1],
+            reversePreferenceMap[row.偏好分類2],
+            reversePreferenceMap[row.偏好分類3],
+          ];
+
+          // 回傳新的物件，保留其他欄位，並加入「偏好分類」欄位，同時移除 1/2/3
+          return {
+            ...row,
+            偏好分類: preferences,
+            偏好分類1: undefined,
+            偏好分類2: undefined,
+            偏好分類3: undefined,
+          };
+        });
+
+        // [HTTP 201]
+        resStatus({
+          res: res,
+          status: 200,
+          message: '查詢成功',
+          dbdata: {
+            data: transformedRows,
+          },
+        });
+      } else {
+        // [HTTP 200] 呈現資料
+        resStatus({
+          res: res,
+          status: 200,
+          message: '查無資料',
+        });
+      }
+
       // [HTTP 201]
       resStatus({
         res: res,
@@ -35,7 +74,7 @@ const collectionController = {
     try {
       const { tour_id } = req.params;
       const user_id = req.user.id;
-      ``;
+
       await pool.query('INSERT INTO favorite (user_id, tour_id) VALUES ($1, $2)', [
         user_id,
         tour_id,

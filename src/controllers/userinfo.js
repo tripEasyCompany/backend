@@ -32,11 +32,7 @@ async function post_user_SignUp(req, res, next) {
     );
     const level = levelResult.rows[0];
 
-<<<<<<< HEAD
-    const pointResult = await client.query(
-=======
     await client.query(
->>>>>>> clean-safe-branch
       'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3) RETURNING *',
       [user.user_id, '新增', 0]
     );
@@ -97,9 +93,9 @@ async function post_user_LoginEmail(req, res, next) {
     await client.query('COMMIT');
 
     // 簽發 JWT（依你專案調整）
-    const payload = { id: user.user_id };
+    const payload = { id: user.user_id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_DAY || '30d',
+      expiresIn: process.env.JWT_EXPIRES_DAY || '7d',
     });
 
     // [HTTP 200] 呈現資料
@@ -159,31 +155,17 @@ async function post_user_LoginGoogle(req, res, next) {
       );
       const user = userResult.rows[0];
 
-<<<<<<< HEAD
-      const levelResult = await client.query(
-        'INSERT INTO public."user_level" (user_id,level,name,badge_url,travel_point) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [user.user_id, 'Level 1', '初心旅人', 'https://example.com/badges/level1.png', 0]
-      );
-      const level = levelResult.rows[0];
-
-      const pointResult = await client.query(
-=======
       await client.query(
         'INSERT INTO public."user_level" (user_id,level,name,badge_url,travel_point) VALUES ($1, $2, $3, $4, $5) RETURNING *',
         [user.user_id, 'Level 1', '初心旅人', 'https://example.com/badges/level1.png', 0]
       );
 
       await client.query(
->>>>>>> clean-safe-branch
         'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3) RETURNING *',
         [user.user_id, '新增', 0]
       );
 
-<<<<<<< HEAD
-      const socialLoginResult = await client.query(
-=======
       await client.query(
->>>>>>> clean-safe-branch
         'INSERT INTO public."socialLogin" (user_id, provider_method, provider_id, provider_token) VALUES ($1, $2, $3, $4) RETURNING *',
         [user.user_id, 'google', code, access_token]
       );
@@ -196,9 +178,9 @@ async function post_user_LoginGoogle(req, res, next) {
     const level = await pool.query('SELECT * FROM public."user_level" where user_id = $1', [
       user.rows[0].user_id,
     ]);
-    const payload = { id: user.rows[0].user_id };
+    const payload = { id: user.rows[0].user_id, role: user.rows[0].role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_DAY || '30d',
+      expiresIn: process.env.JWT_EXPIRES_DAY || '7d',
     });
 
     resStatus({
@@ -256,8 +238,8 @@ async function post_user_forgetPW(req, res, next) {
       subject: 'TripEasy 密碼重設連結',
       html: `
                 <p>您好，親愛的用戶 : </p><br>
-                <p>請於 15 分鐘內點擊以下連結以重設密碼：</p>
-                <a href="${resetUrl}">${resetUrl}</a>
+                <p>請於 15 分鐘內點擊以下連結以重設密碼：</p><br>
+                <a href="${resetUrl}">連結 : ${resetUrl}</a>
                 <p>若您未曾申請重設密碼，請忽略此信件，謝謝。</p>
             `,
     });

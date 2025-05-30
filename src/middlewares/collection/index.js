@@ -20,8 +20,6 @@ async function getCollection(req, res, next) {
     return;
   }
 
-  //???(當page, limit 超出資料庫範圍時)
-
   next();
 }
 
@@ -51,6 +49,17 @@ async function postCollection(req, res, next) {
       res: res,
       status: 400,
       message: '查無此項目',
+    });
+    return;
+  }
+
+  //檢查有無此人
+  const userResult = await pool.query('SELECT * FROM public.user WHERE user_id = $1', [user_id]);
+  if (userResult.rows.length === 0) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '查無此人',
     });
     return;
   }
@@ -99,6 +108,17 @@ async function deleteCollection(req, res, next) {
       res: res,
       status: 400,
       message: '查無此項目',
+    });
+    return;
+  }
+
+  //檢查有無此人
+  const userResult = await pool.query('SELECT * FROM public.user WHERE user_id = $1', [user_id]);
+  if (userResult.rows.length === 0) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '查無此人',
     });
     return;
   }
