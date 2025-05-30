@@ -19,7 +19,6 @@ const nonEmptyString = Joi.string().min(1).required().messages({
   'any.required': '欄位為必填欄位',
 });
 
-<<<<<<< HEAD
 // 語言驗證
 const langSchema = Joi.string()
   .valid(...supportedLanguages)
@@ -32,10 +31,6 @@ const langSchema = Joi.string()
 
 // 分頁參數驗證
 const getSchema = Joi.object({
-  lang: langSchema,
-=======
-// 分頁參數驗證
-const getSchema = Joi.object({
   lang: Joi.string()
     .valid(...supportedLanguages)
     .required()
@@ -44,7 +39,6 @@ const getSchema = Joi.object({
       'any.only': '語系僅支援 zh 或 en',
       'string.empty': '語系不得為空',
     }),
->>>>>>> origin/main
   page: Joi.number().integer().min(1).required().messages({
     'number.base': 'page 必須為數字',
     'number.min': 'page 必須為正整數',
