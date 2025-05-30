@@ -24,6 +24,10 @@ function verifyToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
     next();
   } catch (err) {
     // 分辨過期與其他無效
