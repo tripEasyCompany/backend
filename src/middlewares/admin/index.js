@@ -63,24 +63,21 @@ async function patchUserPurview(req, res, next) {
   const { user_ids, role } = req.body;
 
   // [400] 欄位未填寫正確
-  for (const user_id of user_ids) {
-    const { error } = isValidator.userPurviewSchema.validate(
-      { user_id, role },
-      {
-        abortEarly: false,
-        stripUnknown: true,
-      }
-    );
-
-    if (error) {
-      const message = error.details[0]?.message || '欄位驗證錯誤';
-      resStatus({
-        res: res,
-        status: 400,
-        message: message,
-      });
-      return;
+  const { error } = isValidator.userPurviewSchema.validate({ user_ids, role },
+    {
+      abortEarly: false,
+      stripUnknown: true,
     }
+  );
+
+  if (error) {
+    const message = error.details[0]?.message || '欄位驗證錯誤';
+    resStatus({
+      res: res,
+      status: 400,
+      message: message,
+    });
+    return;
   }
 
   // [404] 查無此用戶

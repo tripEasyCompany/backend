@@ -46,17 +46,20 @@ const pageSchema = Joi.number().integer().min(1).required().messages({
   'any.required': 'page 為必填欄位',
 });
 
+// 42
 const userinfoSchema = Joi.object({
     lang: langSchema,
     page: pageSchema,
     limit: limitSchema,
 });
 
+// 43
 const userDetailinfoSchema = Joi.object({
   lang: langSchema,
   user_id: UUIDField,
 });
 
+// 44
 const userPurviewSchema = Joi.object({
   user_ids: Joi.array().items(UUIDField).min(1).required().messages({
     'array.base': 'user_ids 必須為 UUID 陣列',
@@ -73,6 +76,7 @@ const userPurviewSchema = Joi.object({
     }),
 });
 
+// 45
 const userSearchSchema = Joi.object({
   user_id: UUIDField,
 });

@@ -115,7 +115,7 @@ async function post_Changeinfo(req, res, next) {
 
     resStatus({
       res: res,
-      status: 201,
+      status: 200,
       message: '新增成功',
     });
   } catch (error) {
@@ -127,22 +127,22 @@ async function post_Changeinfo(req, res, next) {
 
 // [GET] 54 : 管理者查看異動通知
 async function get_Changeinfo(req, res, next) {
-  // try {
-  //   const changeInfoRepo = await pool.query(
-  //     'SELECT * FROM public."change_info" ORDER BY created_at DESC'
-  //   );
+  try {
+    const changeInfoRepo = await pool.query(
+      'SELECT * FROM public."change_info" ORDER BY created_at DESC'
+    );
 
-  //   resStatus({
-  //     res: res,
-  //     status: 200,
-  //     message: '查詢成功',
-  //     dbdata: changeInfoRepo.rows,
-  //   });
-  // } catch (error) {
-  //   // [HTTP 500] 伺服器異常
-  //   console.error('❌ 伺服器內部錯誤:', error);
-  //   next(error);
-  // }
+    resStatus({
+      res: res,
+      status: 200,
+      message: '查詢成功',
+      dbdata: changeInfoRepo.rows,
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
 }
 
 // [GET] 編號 68 : 管理者查看使用者的優惠卷清單
@@ -212,9 +212,9 @@ module.exports = {
   patch_userPurview,
   get_userSearch,
   post_Changeinfo,
-  get_Changeinfo,
-  patch_Changeinfo,
-  delete_Changeinfo,
+  // get_Changeinfo,
+  // patch_Changeinfo,
+  // delete_Changeinfo,
 
   get_user_couponList,
   delete_user_couponAssign,
