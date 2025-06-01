@@ -41,13 +41,13 @@ router.get(
 router.post('/change-info', auth, authRole('admin'), mw.post_Changeinfo, controller.post_Changeinfo);
 
 // [GET] 54 : 管理者查看異動通知
-// router.get('/change-info', auth, authRole('admin'), mw.get_Changeinfo, controller.get_Changeinfo);
+router.get('/change-info', auth, authRole('admin'), mw.get_Changeinfo, controller.get_Changeinfo);
 
 // [PATCH] 55 : 管理者修改異動通知
-// router.patch('/change-info', auth, authRole('admin'), mw.patch_Changeinfo, controller.patch_Changeinfo);
+router.patch('/change-info', auth, authRole('admin'), mw.patch_Changeinfo, controller.patch_Changeinfo);
 
 // [DELETE] 56 : 管理者刪除異動通知
-// router.delete('/change-info', auth, authRole('admin'), mw.delete_Changeinfo, controller.delete_Changeinfo);
+router.delete('/change-info', auth, authRole('admin'), mw.delete_Changeinfo, controller.delete_Changeinfo);
 
 // [GET] 編號 68 : 管理者查看使用者的優惠卷清單
 router.get(

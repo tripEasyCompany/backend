@@ -2,6 +2,7 @@ const Joi = require('joi');
 
 const supportedLanguages = ['zh-TW', 'en-US'];
 const supportedRoles = ['admin', 'user'];
+const supportedStatuses = ['','1', '2'];
 
 // UUID 驗證
 const UUIDField = Joi.string()
@@ -20,7 +21,7 @@ const nonEmptyString = Joi.string().min(1).required().messages({
   'any.required': '欄位為必填欄位',
 });
 // 字串驗證
-const stringField = Joi.string().messages({
+const stringField = Joi.string().allow(null, '').messages({
   'string.base': '欄位必須為字串',
 });
 
@@ -87,13 +88,20 @@ const postChangeinfo = Joi.object({
 });
 
 const getChangeinfo = Joi.object({
+  status: Joi.string().valid(...supportedStatuses) .optional().messages({
+    'any.only': 'status 為 1 或 2',
+  }),
   page: pageSchema,
   limit: limitSchema,
   lang: langSchema,
 });
 
 const patchChangeinfo = Joi.object({
-  tour_id: nonEmptyString, //UUIDField
+  tour_id:  Joi.array().items(UUIDField).min(1).required().messages({
+    'array.base': 'user_ids 必須為 UUID 陣列',
+    'array.min': 'user_ids 至少需包含一個 UUID',
+    'any.required': 'user_ids 為必填欄位',
+  }),
   message: nonEmptyString,
 });
 

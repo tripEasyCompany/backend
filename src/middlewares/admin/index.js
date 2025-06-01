@@ -208,6 +208,7 @@ async function get_Changeinfo(req, res, next) {
     abortEarly: false,
     stripUnknown: true
   });
+console.log('error', error);
   if (error) {
     resStatus({
       res: res,
@@ -225,8 +226,7 @@ async function patch_Changeinfo(req, res, next) {
   const { tour_ids, message } = req.body;
 
   // [400] 欄位未填寫正確
-  for( const tour_id of tour_ids) {
-    const { error } = isValidator.patchChangeinfo.validate({ tour_id, message }, {
+    const { error } = isValidator.patchChangeinfo.validate({ tour_ids, message }, {
       abortEarly: false,
       stripUnknown: true
     });
@@ -238,7 +238,6 @@ async function patch_Changeinfo(req, res, next) {
       });
       return;
     }
-  }
 
   // [404] 查無此項目
   const dbResult = await pool.query(
