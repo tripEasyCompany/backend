@@ -29,6 +29,17 @@ function createShaEncrypt(encrypted) {
   return sha.update(plainText).digest('hex').toUpperCase();
 }
 
+// 對應文件 21, 22 頁：將 aes 解密
+function createSesDecrypt(TradeInfo) {
+  const decrypt = crypto.createDecipheriv('aes-256-cbc', HASHKEY, HASHIV);
+  decrypt.setAutoPadding(true);
+  const text = decrypt.update(TradeInfo, 'hex', 'utf8');
+  const plainText = text + decrypt.final('utf8');
+  //const result = plainText.replace(/[\x00-\x20]+/g, '');
+  //return JSON.parse(result);
+  return JSON.parse(plainText);
+}
+
 // [POST] 編號 37 : 藍新金流交易處理(訂單新增，付款狀態狀態預設0)
 async function post_newebpay_payment(req, res, next) {
   const { id } = req.user;
@@ -125,7 +136,98 @@ async function post_newebpay_payment(req, res, next) {
 
 // [POST] 編號 38 : notify(訂單狀態更改，將付款狀態改為1，並新增payment)
 async function post_newebpay_notify(req, res, next) {
-    
+    try {
+    const { TradeInfo, TradeSha } = req.body;
+
+    // 解密資料
+    const data = createSesDecrypt(TradeInfo);
+    const result = data?.Result;
+    console.log('解密後內容:', result);
+
+    if (!result?.MerchantOrderNo) {
+      console.log('缺少 MerchantOrderNo');
+      return res.status(400).end();
+    }
+
+    // 驗證 TradeSha 一致性
+    const calculatedSha = createShaEncrypt(TradeInfo);
+    if (calculatedSha !== TradeSha) {
+      console.log('付款失敗：TradeSha 不一致');
+      return res.status(400).end();
+    }
+
+    const order_id = result.MerchantOrderNo;
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 查詢訂單基本資料
+      const orderResult = await client.query(`
+        SELECT user_id, address, phone, discount_price
+        FROM public."orders"
+        WHERE order_id = $1
+      `, [order_id]);
+
+      if (orderResult.rowCount === 0) {
+        console.log('找不到訂單:', order_id);
+        await client.query('ROLLBACK');
+        return res.status(404).end();
+      }
+
+      const order = orderResult.rows[0];
+
+      // 新增一筆 payment 資料
+      await client.query(`
+        INSERT INTO public."payment" (
+          user_id, order_id, address, phone,
+          payment_method, payment_status,
+          discount_price, return_data, return_time,
+          result_info, result_time,
+          created_at, updated_at
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW(),NOW())
+      `, [
+        order.user_id,
+        order_id,
+        order.address,
+        order.phone,
+        result.PaymentType,
+        1, // 已付款
+        order.discount_price,
+        JSON.stringify(data),
+        new Date(result.TradeTime),
+        result.Message || '',
+        new Date(result.PayTime || result.TradeTime)
+      ]);
+
+      // 更新 orders.payment_status = 1
+      await client.query(`
+        UPDATE public."orders"
+        SET payment_status = 1
+        WHERE order_id = $1
+      `, [order_id]);
+
+      // 更新 order_item.payment = 1
+      await client.query(`
+        UPDATE public."order_item"
+        SET payment = 1
+        WHERE order_id = $1
+      `, [order_id]);
+
+      await client.query('COMMIT');
+      console.log('Notify 處理完成：', order_id);
+      res.status(200).send('OK');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('資料庫錯誤:', err);
+      res.status(500).send('DB Error');
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('Notify 解密錯誤:', err);
+    res.status(400).send('Bad Request');
+  }
 }
 
 
