@@ -93,6 +93,9 @@ app.use(`/api/${version}/user/checkout`, checkoutRouter);
 // 編號 42~45、68~69 : 用戶基本資料、優惠卷
 app.use(`/api/${version}/admin`, adminRouter);
 
+// 編號 46 : 管理者新增旅遊項目
+app.use(`/api/${version}/admin/product`, productRouter);
+
 // 編號 57~59 : 促銷管理
 app.use(`/api/${version}/admin/promotions`, promotionRouter);
 
