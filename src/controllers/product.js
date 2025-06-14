@@ -1,6 +1,7 @@
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
 const preferenceMap = require('../utils/preferenceMap');
+const { v4: uuidv4 } = require('uuid');
 
 function buildDynamicTourSQL(query) {
   const {
@@ -588,9 +589,175 @@ async function get_tourHiddenPlay(req, res, next) {
   }
 }
 
+// [POST] 編號 46 : 管理者新增旅遊項目
+async function post_admin_product(req, res, next) {
+  const {
+    // Tour 欄位
+    product_name, product_price, product_description, product_type, product_item,
+    product_status, product_slogan, product_days, product_country, product_region,
+    product_address, product_google_map_url, product_calendar_url,
+    product_preference1, product_preference2, product_preference3, product_notice,
+    product_cover_image, product_img1, product_img1_desc, product_img2, product_img2_desc,
+    product_img3, product_img3_desc, product_img4, product_img4_desc, product_img5,
+    product_img5_desc, product_img6, product_img6_desc, product_start_date, product_end_date,
+    // 相關實體的巢狀物件
+    product_detail, product_restaurant, product_hotel,
+  } = req.body;
+
+  const tour_id = uuidv4(); // 產生唯一的 tour_id
+  const client = await pool.connect();
+  const createdData = {};
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. 新增到 "tour" 資料表
+    const tourQuery = `
+      INSERT INTO public."tour" (
+        tour_id, type, item, status, title, slogan, tour_start_date, tour_end_date,
+        days, price, country, region, address, google_map_url, calendar_url,
+        preference1, preference2, preference3, notice, description, cover_image,
+        img1, img1_desc, img2, img2_desc, img3, img3_desc, img4, img4_desc,
+        img5, img5_desc, img6, img6_desc
+      ) 
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
+        $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33
+      )
+      RETURNING *
+    `;
+    const tourValues = [
+      tour_id, product_type, product_item, product_status, product_name, product_slogan,
+      product_start_date || null, product_end_date || null, product_days, product_price,
+      product_country, product_region, product_address, product_google_map_url,
+      product_calendar_url, product_preference1, product_preference2, product_preference3,
+      product_notice || null, product_description, product_cover_image, product_img1,
+      product_img1_desc, product_img2, product_img2_desc, product_img3, product_img3_desc,
+      product_img4, product_img4_desc, product_img5, product_img5_desc, product_img6,
+      product_img6_desc,
+    ];
+    const tourResult = await client.query(tourQuery, tourValues);
+    createdData.tour = tourResult.rows[0];
+
+    // 2. 條件性新增到 "tour_detail"
+    if (product_detail && Object.keys(product_detail).length > 0) {
+      const { feature_img1, feature_desc1, feature_img2, feature_desc2, feature_img3, feature_desc3, itinerary } = product_detail;
+      const detailQuery = `
+        INSERT INTO public."tour_detail" (
+          tour_id, feature_img1, feature_desc1, feature_img2, feature_desc2,
+          feature_img3, feature_desc3, itinerary
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING *
+      `;
+      const detailValues = [
+        tour_id, feature_img1, feature_desc1, feature_img2, feature_desc2,
+        feature_img3, feature_desc3, itinerary,
+      ];
+      const detailResult = await client.query(detailQuery, detailValues);
+      createdData.tour_detail = detailResult.rows[0];
+    }
+
+    // 3. 條件性新增到 "restaurant" 及其相關資料表
+    if (product_item === 'food' && product_restaurant && Object.keys(product_restaurant).length > 0) {
+      const { reservation_limit, website_info, website_url, business_hours_list, menu_items } = product_restaurant;
+      const restaurantQuery = `
+        INSERT INTO public."restaurant" (tour_id, reservation_limit, website_info, website_url)
+        VALUES ($1, $2, $3, $4)
+        RETURNING restaurant_id, tour_id
+      `;
+      const restaurantValues = [tour_id, reservation_limit, website_info, website_url];
+      const restaurantResult = await client.query(restaurantQuery, restaurantValues);
+      const restaurant_id = restaurantResult.rows[0].restaurant_id;
+      createdData.restaurant = restaurantResult.rows[0];
+      createdData.restaurant.business_hours = [];
+      createdData.restaurant.menu = [];
+
+      // 新增到 "restaurant_business"
+      if (business_hours_list && business_hours_list.length > 0) {
+        for (const bizHour of business_hours_list) {
+          const bizQuery = `
+            INSERT INTO public."restaurant_business" (restaurant_id, week, business_hours)
+            VALUES ($1, $2, $3)
+            RETURNING *
+          `;
+          const bizValues = [restaurant_id, bizHour.week, bizHour.business_hours];
+          const bizResult = await client.query(bizQuery, bizValues);
+          createdData.restaurant.business_hours.push(bizResult.rows[0]);
+        }
+      }
+
+      // 新增到 "restaurant_menu"
+      if (menu_items && menu_items.length > 0) {
+        for (const menuItem of menu_items) {
+          const menuQuery = `
+            INSERT INTO public."restaurant_menu" (restaurant_id, name, price, description)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+          `;
+          const menuValues = [restaurant_id, menuItem.name, menuItem.price, menuItem.description || null];
+          const menuResult = await client.query(menuQuery, menuValues);
+          createdData.restaurant.menu.push(menuResult.rows[0]);
+        }
+      }
+    }
+
+    // 4. 條件性新增到 "hotel" 和 "hotel_room"
+    if (product_item === 'hotel' && product_hotel && Object.keys(product_hotel).length > 0) {
+      const { facility_desc, food_desc, room_desc, leisure_desc, traffic_desc, other_desc, rooms } = product_hotel;
+      const hotelQuery = `
+        INSERT INTO public."hotel" (
+          tour_id, facility_desc, food_desc, room_desc, leisure_desc, traffic_desc, other_desc
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING hotel_id, tour_id
+      `;
+      const hotelValues = [
+        tour_id, facility_desc || null, food_desc || null, room_desc || null,
+        leisure_desc || null, traffic_desc || null, other_desc || null,
+      ];
+      const hotelResult = await client.query(hotelQuery, hotelValues);
+      const hotel_id = hotelResult.rows[0].hotel_id;
+      createdData.hotel = hotelResult.rows[0];
+      createdData.hotel.rooms = [];
+
+      if (rooms && rooms.length > 0) {
+        for (const room of rooms) {
+          const roomQuery = `
+            INSERT INTO public."hotel_room" (
+              hotel_id, title, capacity, room_count, image, image_desc
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+          `;
+          const roomValues = [hotel_id, room.title, room.capacity, room.room_count, room.image, room.image_desc];
+          const roomResult = await client.query(roomQuery, roomValues);
+          createdData.hotel.rooms.push(roomResult.rows[0]);
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    resStatus({
+      res,
+      status: 201,
+      message: '旅遊項目及其相關資料新增成功',
+      dbdata: createdData,
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('新增旅遊項目及相關資料錯誤:', error);
+    // 將錯誤傳遞給集中的錯誤處理中間件
+    next(error);
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   get_tourData,
   get_tourDetails,
   get_tourReview,
   get_tourHiddenPlay,
+  post_admin_product,
 };

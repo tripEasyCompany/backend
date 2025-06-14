@@ -114,9 +114,43 @@ async function get_tourHiddenPlay(req, res, next) {
   next();
 }
 
+// [POST] 編號 46 : 管理者新增旅遊項目
+async function post_Product(req, res, next) {
+  const { error } = product_Validator.createProductSchema.validate(req.body);
+
+  // [HTTP 400] 資料錯誤
+  if (error) {
+    const message = error.details[0]?.message || '欄位驗證錯誤';
+    resStatus({
+      res: res,
+      status: 400,
+      message: message,
+    });
+    return;
+  }
+
+  // [HTTP 409] 檢查產品名稱是否已存在
+  const { product_name } = req.body;
+  const { rows } = await pool.query(
+    `SELECT tour_id FROM public."tour" WHERE title = $1`,
+    [product_name]
+  );
+
+  if (rows.length > 0) {
+    return resStatus({
+      res: res,
+      status: 409,
+      message: `旅遊項目名稱「${product_name}」已存在`,
+    });
+  }
+
+  next();
+}
+
 module.exports = {
   get_tourData,
   get_tourDetail,
   get_tourReview,
   get_tourHiddenPlay,
+  post_Product,
 };
