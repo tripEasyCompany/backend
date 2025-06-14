@@ -7,8 +7,6 @@ const authRole = require('../middlewares/authorizeRoles');
 
 const mw = require('../middlewares/collection/index');
 
-// middlewave
-
 // [GET] 17 : 使用者查看收藏項目
 router.get('/info/all', auth, authRole('User'), mw.getCollection, controller.get_collection);
 

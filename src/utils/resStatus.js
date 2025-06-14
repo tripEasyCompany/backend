@@ -17,6 +17,9 @@ module.exports = function resStatus({ res, status, dbdata = [], message = '' }) 
     case 404:
       data.status = 'false';
       data.message = message;
+      if (dbdata.length !== 0) {
+        data.data = dbdata;
+      }
       break;
     case 400:
     case 401:
