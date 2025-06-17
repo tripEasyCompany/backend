@@ -97,10 +97,10 @@ const getChangeinfo = Joi.object({
 });
 
 const patchChangeinfo = Joi.object({
-  tour_id:  Joi.array().items(UUIDField).min(1).required().messages({
-    'array.base': 'user_ids 必須為 UUID 陣列',
-    'array.min': 'user_ids 至少需包含一個 UUID',
-    'any.required': 'user_ids 為必填欄位',
+  tour_ids: Joi.array().items(UUIDField).min(1).required().messages({
+    'array.base': 'tour_ids 必須為 UUID 陣列',
+    'array.min': 'tour_ids 至少需包含一個 UUID',
+    'any.required': 'tour_ids 為必填欄位',
   }),
   message: nonEmptyString,
 });
