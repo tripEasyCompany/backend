@@ -21,6 +21,7 @@ const promotionRouter = require('./routes/promotions');
 const couponRouter = require('./routes/coupons');
 const schedulerRouter = require('./routes/scheduler');
 const otherRouter = require('./routes/other');
+const newebpayRouter = require('./routes/newebpay');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -89,6 +90,9 @@ app.use(`/api/${version}/user/trade/discounts`, discountsRouter);
 
 // 編號 34~36、89 : 購物功能
 app.use(`/api/${version}/user/checkout`, checkoutRouter);
+
+// 編輯 37~41 : 金流處理
+app.use(`/api/${version}/user/newebpay`, newebpayRouter);
 
 // 編號 42~45、68~69 : 用戶基本資料、優惠卷
 app.use(`/api/${version}/admin`, adminRouter);
