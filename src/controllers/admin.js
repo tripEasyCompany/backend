@@ -1,5 +1,6 @@
 const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
+const { CONFLICT } = require('http-status-codes');
 
 // [GET] 42 : 管理者查看註冊用戶資料
 async function get_userinfo(req, res, next) {
@@ -133,7 +134,6 @@ async function get_Changeinfo(req, res, next) {
     const conditions = [];
     const values = [];
     let index = 1;
-
     if (status) {
       conditions.push(`"上下架狀態" = $${index++}`);
       values.push(status);
@@ -163,6 +163,7 @@ async function get_Changeinfo(req, res, next) {
 
     const whereSQL = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const select = '旅遊編號, 上下架狀態, 通知狀態, 旅遊名稱, 旅遊描述, 所屬國家, 所屬地區, 建立時間, 價錢, "旅遊代表圖 Url"';
+  
     const query = `
       SELECT ${select} FROM public."tour_base"
       ${whereSQL}
@@ -170,9 +171,7 @@ async function get_Changeinfo(req, res, next) {
       LIMIT $${index++}
       OFFSET $${index}
     `;
-
     const repo = await pool.query(query, values);
-    console.log('repo:', repo);
 
     resStatus({
       res: res,
