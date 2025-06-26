@@ -2,6 +2,7 @@ const Joi = require('joi');
 
 const supportedLanguages = ['zh-TW', 'en-US'];
 const supportedType = ['tourgroup', 'backpacker'];
+const supportedStatuses = ['','1', '2'];
 const itemOptions = {
   tourgroup: ['travel'],
   backpacker: ['hotel', 'food', 'spot'],
@@ -167,6 +168,13 @@ const tourIDSchema = Joi.object({
 const detailsSchema = baseSchema.fork(['lang'], (field) => field.required());
 const reviewSchema = baseSchema.fork(['page', 'limit', 'lang'], (field) => field.required());
 const hiddenPlaySchema = baseSchema.fork(['page', 'limit', 'lang'], (field) => field.required());
+
+// UUID 驗證
+const UUIDField = Joi.string().guid({ version: ['uuidv4', 'uuidv5'] }).required().messages({
+    'string.guid': 'ID 格式不正確，需為 UUID 格式',
+    'any.required': 'ID 為必填欄位',
+    'string.empty': 'ID 不可為空',
+  });
 
 // tour_detail 的驗證模型
 const tourDetailSchema = Joi.object({
@@ -462,6 +470,32 @@ const createProductSchema = Joi.object({
   product_hotel: hotelSchema.optional(),
 });
 
+//47
+const getTourSearch = Joi.object({
+  status: Joi.string().valid(...supportedStatuses) .optional().messages({
+    'any.only': 'status 為 1 或 2',
+  })
+});
+
+//48
+const getAdmin_tourDetail = Joi.object({
+  tour_id: UUIDField  
+});
+
+//50
+const patchTourProduct = Joi.object({
+  tour_ids: Joi.array().items(UUIDField).min(1).required().messages({
+    'array.base': 'tour_ids 必須為 UUID 陣列',
+    'array.min': 'tour_ids 至少需包含一個 UUID',
+    'any.required': 'tour_ids 為必填欄位',
+  }),
+  tour_status: Joi.string().valid(...supportedStatuses).required().messages({
+    'any.required': 'tour_status 為必填欄位',
+    'any.only': 'tour_status 僅支援 1 或 2',
+    'string.empty': 'tour_status 不可為空',
+  }),
+});
+
 module.exports = {
   tourIDSchema,
   queryschema,
@@ -469,4 +503,8 @@ module.exports = {
   reviewSchema,
   hiddenPlaySchema,
   createProductSchema,
+
+  getTourSearch,
+  getAdmin_tourDetail,
+  patchTourProduct,
 };

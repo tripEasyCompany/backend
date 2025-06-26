@@ -26,10 +26,7 @@ const stringField = Joi.string().allow(null, '').messages({
 });
 
 // 語言驗證
-const langSchema = Joi.string()
-  .valid(...supportedLanguages)
-  .required()
-  .messages({
+const langSchema = Joi.string().valid(...supportedLanguages).required().messages({
     'any.required': '語系為必填欄位',
     'any.only': '語系僅支援 zh-TW 或 en-US',
     'string.empty': '語系不得為空',
@@ -113,7 +110,7 @@ module.exports = {
     userinfoSchema,
     userDetailinfoSchema,
     userPurviewSchema,
-    userSearchSchema,
+    userSearchSchema,    
     postChangeinfo,
     getChangeinfo,
     patchChangeinfo,
