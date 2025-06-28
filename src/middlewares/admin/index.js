@@ -208,7 +208,6 @@ async function get_Changeinfo(req, res, next) {
     abortEarly: false,
     stripUnknown: true
   });
-console.log('error', error);
   if (error) {
     resStatus({
       res: res,
