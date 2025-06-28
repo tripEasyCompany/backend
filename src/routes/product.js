@@ -19,14 +19,14 @@ router.get('/', auth, authRole('admin'), mw.get_tourSearch, controller.get_tourS
 // [GET] 48 : 管理者查看旅遊項目詳細內容
 router.get('/:tour_id', auth, authRole('admin'), mw.get_admin_tourDetail, controller.get_tourDetail);
 
-//X [PATCH] 49 : 管理者修改旅遊項目細項內容
-router.patch('/:tour_id', auth, authRole('admin'),/* mw.patch_admin_tourDetail,*/ controller.patch_tourInfo);
+// [PATCH] 49 : 管理者修改旅遊項目細項內容
+router.patch('/:tour_id', auth, authRole('admin'), mw.patch_admin_tourDetail, controller.patch_tourInfo);
 
 // [PATCH] 50 : 管理者上架刊登旅遊項目
 router.patch('/status', auth, authRole('admin'), mw.patch_tourStatus, controller.patch_tourStatus);
 
-//X [DELETE] 51 : 管理者刪除旅遊項目
-// router.delete('/',/* auth, /*authRole('admin')/*, mw.post_Changeinfo,*/ controller.delete_tourProduct);
+// [DELETE] 51 : 管理者刪除旅遊項目
+router.delete('/', auth, authRole('admin'), mw.delete_tourProduct, controller.delete_tourProduct);
 
 
 // [GET] 編號 22 : 使用者查詢旅遊項目

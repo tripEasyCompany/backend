@@ -482,6 +482,125 @@ const getAdmin_tourDetail = Joi.object({
   tour_id: UUIDField  
 });
 
+//49
+//travelSchema
+const travelSchema = Joi.object({
+  features: Joi.array().items(
+    Joi.object({
+      img_url: Joi.string().required().messages({
+        'string.base': '圖片連結必須是字串',
+        'string.uri': '圖片連結必須是有效的網址', //.url
+        'any.required': '圖片連結為必填欄位',
+      }),
+      description: Joi.string().required().messages({
+        'string.base': '圖片描述必須是字串',
+        'any.required': '圖片描述為必填欄位',
+        'string.empty': '圖片描述不得為空',
+      }),
+    })
+  ).min(1).required().messages({
+    'array.base': 'features 必須為陣列',
+    'array.min': '至少需要一筆 feature 資料',
+    'any.required': 'features 為必填欄位',
+  }),
+  itinerary: Joi.string().required().messages({
+    'string.base': '行程簡介必須是字串',
+    'any.required': '行程簡介為必填欄位',
+    'string.empty': '行程簡介不得為空',
+  }),
+});
+
+//food
+//定義時間格式
+const dayScheduleSchema = Joi.alternatives().try(
+  Joi.array().items(
+    Joi.string().pattern(/^\d{2}:\d{2}~\d{2}:\d{2}$/).messages({
+      'string.pattern.base': '時間格式需為 HH:MM~HH:MM，例如 11:30~14:30',
+    })
+  ),
+  Joi.array().length(1).items(Joi.string().valid('close')).messages({
+    'any.only': '關閉時間格式必須為 "close"',
+  })
+);
+
+// 定義星期開放時間格式
+const openTimesSchema = Joi.object({
+  Sun: dayScheduleSchema.required(),
+  Mon: dayScheduleSchema.required(),
+  Tue: dayScheduleSchema.required(),
+  Wed: dayScheduleSchema.required(),
+  Thu: dayScheduleSchema.required(),
+  Fri: dayScheduleSchema.required(),
+  Sat: dayScheduleSchema.required(),
+}).required();
+
+const foodSchema = Joi.object({
+  max_people_per_day: Joi.number().integer().min(0).required().messages({
+    'number.base': '每日最多預約人數必須為數字',
+    'number.min': '每日最多預約人數不能為負數',
+    'any.required': 'max_people_per_day 為必填欄位',
+  }),
+  description: Joi.string().required().messages({
+    'string.base': '描述必須為字串',
+    'any.required': '描述為必填欄位',
+    'string.empty': '描述不得為空',
+  }),
+  link_url: Joi.string().uri().required().messages({
+    'string.base': '連結必須為字串',
+    'string.uri': '連結必須是有效的網址',
+    'any.required': '連結為必填欄位',
+  }),
+  open_times: openTimesSchema
+});
+
+//hotel
+// 房型結構驗證
+const roomSchema = Joi.object({
+  name: Joi.string().required().messages({
+    'string.base': '房型名稱必須為字串',
+    'any.required': '房型名稱為必填欄位',
+    'string.empty': '房型名稱不得為空',
+  }),
+  quantity: Joi.number().integer().min(1).required().messages({
+    'number.base': '數量必須為數字',
+    'number.min': '房型數量至少為 1 間',
+    'any.required': '數量為必填欄位',
+  }),
+  capacity: Joi.number().integer().min(1).required().messages({
+    'number.base': '可容納人數必須為數字',
+    'number.min': '可容納人數至少為 1 人',
+    'any.required': '可容納人數為必填欄位',
+  }),
+  image_url: Joi.string().uri().required().messages({
+    'string.uri': '圖片網址格式錯誤',
+    'any.required': '圖片為必填欄位',
+  }),
+  description: Joi.string().required().messages({
+    'string.base': '描述必須為字串',
+    'any.required': '描述為必填欄位',
+    'string.empty': '描述不得為空',
+  }),
+});
+
+// 服務項目結構驗證
+const servicesSchema = Joi.object({
+  basic: Joi.array().items(Joi.string()).required(),
+  dining: Joi.array().items(Joi.string()).required(),
+  room: Joi.array().items(Joi.string()).required(),
+  leisure: Joi.array().items(Joi.string()).required(),
+  transport: Joi.array().items(Joi.string()).required(),
+  others: Joi.array().items(Joi.string()).required(),
+}).required();
+
+const hotelSchemas = Joi.object({
+  rooms: Joi.array().items(roomSchema).min(1).required().messages({
+    'array.base': '房型資料需為陣列',
+    'array.min': '至少需要一筆房型資料',
+    'any.required': 'rooms 為必填欄位',
+  }),
+  services: servicesSchema
+});
+
 //50
 const patchTourProduct = Joi.object({
   tour_ids: Joi.array().items(UUIDField).min(1).required().messages({
@@ -496,6 +615,15 @@ const patchTourProduct = Joi.object({
   }),
 });
 
+//51
+const delete_tourProduct = Joi.object({
+  tour_ids:  Joi.array().items(UUIDField).min(1).required().messages({
+      'array.base': 'tour_ids 必須為 UUID 陣列',
+      'array.min': 'tour_ids 至少需包含一個 UUID',
+      'any.required': 'tour_ids 為必填欄位',
+  })
+})
+
 module.exports = {
   tourIDSchema,
   queryschema,
@@ -503,8 +631,11 @@ module.exports = {
   reviewSchema,
   hiddenPlaySchema,
   createProductSchema,
-
   getTourSearch,
   getAdmin_tourDetail,
   patchTourProduct,
+  travelSchema,
+  foodSchema,
+  hotelSchemas,
+  delete_tourProduct
 };

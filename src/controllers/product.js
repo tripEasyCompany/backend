@@ -1191,8 +1191,6 @@ async function patch_tourInfo(req, res, next){
     }
 
     if(tour_product && travel){
-      console.log('travel');
-
       const travelSQL = `feature_img1 = $2, feature_desc1 = $3,
         feature_img2 = $4, feature_desc2 = $5, feature_img3 = $6, 
         feature_desc3 = $7, itinerary = $8`;
@@ -1213,7 +1211,6 @@ async function patch_tourInfo(req, res, next){
     }
 
     if(tour_product && food){
-      console.log('food');
       const foodSQL = `reservation_limit = $2, website_info = $3, website_url = $4`;
       const foodValues = [
         food.max_people_per_day, food.description, food.link_url
@@ -1240,8 +1237,6 @@ async function patch_tourInfo(req, res, next){
     }
 
     if(tour_product && hotel){
-      console.log('HHhotel');
-
       const servicesSQL = `
         facility_desc = $2, food_desc = $3, room_desc = $4,
         leisure_desc = $5, traffic_desc = $6, other_desc = $7`;
@@ -1320,29 +1315,65 @@ async function delete_tourProduct(req, res, next) {
 
     const client = await pool.connect();
     for (const tour_id of tour_ids) {
+
+      const tourDetail_id = await client.query(
+        'SELECT tour_detail_id FROM public."tour_detail" WHERE tour_id = $1',
+        [tour_id]
+      );
+      if(tourDetail_id.rowCount > 0){
+        await client.query(
+          'DELETE FROM public."tour_detail" WHERE tour_id = $1',
+          [tour_id]
+        );
+        await client.query(
+          'DELETE FROM public."tour" WHERE "tour_id" = $1',
+          [tour_id]
+        );
+      }
+
       const restaurant_id = await client.query(
         'SELECT restaurant_id FROM public."restaurant" WHERE tour_id = $1',
         [tour_id]
       );
-      await client.query(
-        'DELETE FROM public."restaurant_business" WHERE restaurant_id = $1',
-        [restaurant_id.rows[0]?.restaurant_id]
-      );
-      await client.query(
-        'DELETE FROM public."restaurant_menu" WHERE restaurant_id = $1',
-        [restaurant_id.rows[0]?.restaurant_id]
-      );
-      await client.query(
-        'DELETE FROM public."restaurant" WHERE tour_id = $1',
+      if(restaurant_id.rowCount > 0){
+        await client.query(
+          'DELETE FROM public."restaurant_business" WHERE restaurant_id = $1',
+          [restaurant_id.rows[0]?.restaurant_id]
+        );
+        await client.query(
+          'DELETE FROM public."restaurant_menu" WHERE restaurant_id = $1',
+          [restaurant_id.rows[0]?.restaurant_id]
+        );
+        await client.query(
+          'DELETE FROM public."restaurant" WHERE tour_id = $1',
+          [tour_id]
+        );
+        await client.query(
+          'DELETE FROM public."tour" WHERE "tour_id" = $1',
+          [tour_id]
+        );
+      }
+      
+      const hotel_id = await client.query(
+        'SELECT hotel_id FROM public."hotel" WHERE tour_id = $1',
         [tour_id]
       );
-      await client.query(
-        'DELETE FROM public."tour" WHERE "tour_id" = $1',
-        [tour_id]
-      );
+      if(hotel_id.rowCount > 0){
+        await client.query(
+          'DELETE FROM public."hotel_room" WHERE hotel_id = $1',
+          [hotel_id.rows[0]?.hotel_id]
+        );
+        await client.query(
+          'DELETE FROM public."hotel" WHERE tour_id = $1',
+          [tour_id]
+        );
+        await client.query(
+          'DELETE FROM public."tour" WHERE "tour_id" = $1',
+          [tour_id]
+        );
+      }
     }
-
-
+    
     resStatus({
       res: res,
       status: 200,
@@ -1361,12 +1392,10 @@ module.exports = {
   get_tourReview,
   get_tourHiddenPlay,
   post_admin_product,
-
-  //46
   // post_Touradd,
   get_tourSearch,
   get_tourDetail,
   patch_tourInfo,
   patch_tourStatus,
-  // delete_tourProduct,  
+  delete_tourProduct, 
 };
