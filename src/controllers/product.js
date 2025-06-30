@@ -2,6 +2,8 @@ const resStatus = require('../utils/resStatus');
 const { pool } = require('../config/database');
 const preferenceMap = require('../utils/preferenceMap');
 const { v4: uuidv4 } = require('uuid');
+// === 新增：Firebase 上傳輔助函數 ===
+const { uploadProductImages } = require('../utils/firebaseUpload');
 
 function buildDynamicTourSQL(query) {
   const {
@@ -589,7 +591,7 @@ async function get_tourHiddenPlay(req, res, next) {
   }
 }
 
-// [POST] 編號 46 : 管理者新增旅遊項目
+// === 更新：[POST] 編號 46 : 管理者新增旅遊項目 (包含Firebase圖片上傳) ===
 async function post_admin_product(req, res, next) {
   const {
     // Tour 欄位
@@ -597,9 +599,8 @@ async function post_admin_product(req, res, next) {
     product_status, product_slogan, product_days, product_country, product_region,
     product_address, product_google_map_url, product_calendar_url,
     product_preference1, product_preference2, product_preference3, product_notice,
-    product_cover_image, product_img1, product_img1_desc, product_img2, product_img2_desc,
-    product_img3, product_img3_desc, product_img4, product_img4_desc, product_img5,
-    product_img5_desc, product_img6, product_img6_desc, product_start_date, product_end_date,
+    product_img1_desc, product_img2_desc, product_img3_desc, product_img4_desc, 
+    product_img5_desc, product_img6_desc, product_start_date, product_end_date,
     // 相關實體的巢狀物件
     product_detail, product_restaurant, product_hotel,
   } = req.body;
@@ -611,7 +612,12 @@ async function post_admin_product(req, res, next) {
   try {
     await client.query('BEGIN');
 
-    // 1. 新增到 "tour" 資料表
+    // === 新增：步驟 1 - 上傳所有圖片到 Firebase Storage ===
+    console.log('🔄 開始上傳產品圖片到 Firebase Storage...');
+    const imageUrls = await uploadProductImages(req.files, product_name);
+    console.log('✅ 所有圖片上傳完成:', Object.keys(imageUrls));
+
+    // === 更新：步驟 2 - 新增到 "tour" 資料表 (使用Firebase圖片URL) ===
     const tourQuery = `
       INSERT INTO public."tour" (
         tour_id, type, item, status, title, slogan, tour_start_date, tour_end_date,
@@ -631,15 +637,18 @@ async function post_admin_product(req, res, next) {
       product_start_date || null, product_end_date || null, product_days, product_price,
       product_country, product_region, product_address, product_google_map_url,
       product_calendar_url, product_preference1, product_preference2, product_preference3,
-      product_notice || null, product_description, product_cover_image, product_img1,
-      product_img1_desc, product_img2, product_img2_desc, product_img3, product_img3_desc,
-      product_img4, product_img4_desc, product_img5, product_img5_desc, product_img6,
-      product_img6_desc,
+      product_notice || null, product_description, 
+      // === 使用 Firebase 上傳的圖片 URL ===
+      imageUrls.product_cover_image, imageUrls.product_img1, product_img1_desc, 
+      imageUrls.product_img2, product_img2_desc, imageUrls.product_img3, product_img3_desc,
+      imageUrls.product_img4, product_img4_desc, imageUrls.product_img5, product_img5_desc, 
+      imageUrls.product_img6, product_img6_desc,
     ];
     const tourResult = await client.query(tourQuery, tourValues);
     createdData.tour = tourResult.rows[0];
+    console.log('✅ 旅遊項目基本資料新增完成');
 
-    // 2. 條件性新增到 "tour_detail"
+    // === 保持原有：步驟 3 - 條件性新增到 "tour_detail" ===
     if (product_detail && Object.keys(product_detail).length > 0) {
       const { feature_img1, feature_desc1, feature_img2, feature_desc2, feature_img3, feature_desc3, itinerary } = product_detail;
       const detailQuery = `
@@ -650,15 +659,23 @@ async function post_admin_product(req, res, next) {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
+      // 從 imageUrls 物件中取得上傳後的圖片網址
       const detailValues = [
-        tour_id, feature_img1, feature_desc1, feature_img2, feature_desc2,
-        feature_img3, feature_desc3, itinerary,
+        tour_id, 
+        imageUrls.feature_img1, // 使用上傳後的 URL
+        feature_desc1, 
+        imageUrls.feature_img2, // 使用上傳後的 URL
+        feature_desc2, 
+        imageUrls.feature_img3, // 使用上傳後的 URL
+        feature_desc3, 
+        itinerary,
       ];
       const detailResult = await client.query(detailQuery, detailValues);
       createdData.tour_detail = detailResult.rows[0];
+      console.log('✅ 旅遊詳細資訊新增完成');
     }
 
-    // 3. 條件性新增到 "restaurant" 及其相關資料表
+    // === 保持原有：步驟 4 - 條件性新增到 "restaurant" 及其相關資料表 ===
     if (product_item === 'food' && product_restaurant && Object.keys(product_restaurant).length > 0) {
       const { reservation_limit, website_info, website_url, business_hours_list, menu_items } = product_restaurant;
       const restaurantQuery = `
@@ -685,6 +702,7 @@ async function post_admin_product(req, res, next) {
           const bizResult = await client.query(bizQuery, bizValues);
           createdData.restaurant.business_hours.push(bizResult.rows[0]);
         }
+        console.log(`✅ 餐廳營業時間新增完成 (${business_hours_list.length} 筆)`);
       }
 
       // 新增到 "restaurant_menu"
@@ -699,10 +717,12 @@ async function post_admin_product(req, res, next) {
           const menuResult = await client.query(menuQuery, menuValues);
           createdData.restaurant.menu.push(menuResult.rows[0]);
         }
+        console.log(`✅ 餐廳菜單項目新增完成 (${menu_items.length} 筆)`);
       }
+      console.log('✅ 餐廳資訊新增完成');
     }
 
-    // 4. 條件性新增到 "hotel" 和 "hotel_room"
+    // === 保持原有：步驟 5 - 條件性新增到 "hotel" 和 "hotel_room" ===
     if (product_item === 'hotel' && product_hotel && Object.keys(product_hotel).length > 0) {
       const { facility_desc, food_desc, room_desc, leisure_desc, traffic_desc, other_desc, rooms } = product_hotel;
       const hotelQuery = `
@@ -734,23 +754,47 @@ async function post_admin_product(req, res, next) {
           const roomResult = await client.query(roomQuery, roomValues);
           createdData.hotel.rooms.push(roomResult.rows[0]);
         }
+        console.log(`✅ 飯店房間資訊新增完成 (${rooms.length} 筆)`);
       }
+      console.log('✅ 飯店資訊新增完成');
     }
 
     await client.query('COMMIT');
+    console.log('✅ 所有資料庫操作完成，交易已提交');
+
+    // === 更新：回傳結果包含圖片URL ===
     resStatus({
       res,
       status: 201,
       message: '旅遊項目及其相關資料新增成功',
-      dbdata: createdData,
+      dbdata: {
+        ...createdData,
+        tour_id: tour_id,
+        product_name: product_name,
+        image_urls: imageUrls, // 新增：回傳所有圖片URL
+      },
     });
+
   } catch (error) {
     await client.query('ROLLBACK');
+    console.log('❌ 資料庫交易已回滾');
+    
+    // === 新增：Firebase 錯誤處理 ===
+    if (error.message && error.message.includes('Firebase')) {
+      console.error('❌ Firebase 上傳錯誤:', error);
+      return resStatus({
+        res: res,
+        status: 500,
+        message: '圖片上傳失敗，請檢查圖片格式和網路連線',
+      });
+    }
+    
     console.error('新增旅遊項目及相關資料錯誤:', error);
     // 將錯誤傳遞給集中的錯誤處理中間件
     next(error);
   } finally {
     client.release();
+    console.log('🔄 資料庫連線已釋放');
   }
 }
 
