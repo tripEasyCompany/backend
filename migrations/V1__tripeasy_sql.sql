@@ -29,7 +29,8 @@ CREATE TABLE "socialLogin" (
     provider_token VARCHAR(255)  NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES "user"(user_id)
+    FOREIGN KEY (user_id) REFERENCES "user"(user_id),
+    UNIQUE (user_id, provider_method)
 );
 
 
