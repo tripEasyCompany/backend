@@ -3,6 +3,7 @@ const { pool } = require('../../config/database');
 const multer = require('multer');
 
 const product_Validator = require('../../utils/Validator/product_Validator.js');
+const { query } = require('express');
 
 // ============= 圖片上傳相關設定 =============
 
@@ -271,6 +272,260 @@ async function post_Product(req, res, next) {
 
   next();
 }
+// X [POST] 46 : 管理者新增旅遊項目
+// async function postTouradd(req, res, next) {
+//   // [400] 欄位未填寫正確
+//   const { error } = isValidator.postTouradd.validate(req.query, {
+//     abortEarly: false,
+//     stripUnknown: true
+//   });
+//   if (error) {
+//     resStatus({
+//       res: res,
+//       status: 400,
+//       message: '欄位未填寫正確',
+//     });
+//     return;
+//   }
+
+//   next();
+// }
+/**/
+// [GET] 47 : 管理者查看刊登的旅遊項目
+async function get_tourSearch(req, res, next) {
+  const { tour_ids } = req.user;
+
+  // [400] 欄位未填寫正確
+  const { error: Status } = product_Validator.getTourSearch.validate(req.query, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+  if (Status) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '欄位未填寫正確',
+    });
+    return;
+  }
+  // [404] 查無此項目
+  const userResult = tour_ids.map((tour_id) => pool.query(
+    'SELECT * FROM public."tour" WHERE tour_id = $1', 
+    [tour_id]));
+    if (userResult.rows.length === 0) {
+      resStatus({
+        res: res,
+        status: 404,
+        message: '查無此項目',
+      });
+      return;
+    }
+  
+  next();
+}
+
+// [GET] 48 : 管理者查看旅遊項目詳細內容
+async function get_admin_tourDetail(req, res, next) {
+// [400] 欄位未填寫正確
+  const { error } = product_Validator.getAdmin_tourDetail.validate(req.params, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+  if (error) {
+    resStatus({
+      res: res,
+      status: 400,
+      message: '欄位未填寫正確',
+    });
+    return;
+  }
+  
+  next();
+}
+
+// [PATCH] 49 : 管理者修改旅遊項目細項內容
+async function patch_admin_tourDetail(req, res, next) {
+  const { tour_product, travel, food, hotel } = req.body;
+  const { tour_id } = req.params;
+  if( tour_product ){
+  // [404] 查無此項目
+    const idRepo = await pool.query(
+    'SELECT tour_id FROM public."tour" WHERE tour_id = $1',
+    [tour_id]);
+    if(idRepo.rowCount <= 0 ){
+      resStatus({
+          res: res,
+          status: 400,
+          message: '查無此項目',
+        });
+      return;
+    }
+
+    if( travel ){
+    // [404] 查無此項目
+      const idRepo = await pool.query(
+      'SELECT tour_id FROM public."tour_detail" WHERE tour_id = $1',
+      [tour_id]);
+      if(idRepo.rowCount <= 0 ){
+        resStatus({
+            res: res,
+            status: 400,
+            message: '查無此項目',
+          });
+        return;
+      }
+
+    // [400] 欄位未填寫正確
+      const { error: travelError } = product_Validator.travelSchema.validate(travel, {
+        abortEarly: false,
+        stripUnknown: true
+      });
+      if (travelError) {
+        resStatus({
+          res: res,
+          status: 400,
+          message: '欄位未填寫正確',
+        });
+        return;
+      } 
+    }
+
+    if( food ){
+    // [404] 查無此項目
+      const idRepo = await pool.query(
+      'SELECT tour_id FROM public."restaurant" WHERE tour_id = $1',
+      [tour_id]);
+      if(idRepo.rowCount <= 0 ){
+        resStatus({
+            res: res,
+            status: 400,
+            message: '查無此項目',
+          });
+        return;
+      }
+
+    // [400] 欄位未填寫正確
+      const { error: foodError } = product_Validator.foodSchema.validate(food, {
+        abortEarly: false,
+        stripUnknown: true
+      });
+      if (foodError) {
+        resStatus({
+          res: res,
+          status: 400,
+          message: '欄位未填寫正確',
+        });
+        return;
+      }     
+    }
+
+    if( hotel ){
+    // [404] 查無此項目
+      const idRepo = await pool.query(
+      'SELECT tour_id FROM public."hotel" WHERE tour_id = $1',
+      [tour_id]);
+      if(idRepo.rowCount <= 0 ){
+        resStatus({
+            res: res,
+            status: 400,
+            message: '查無此項目',
+          });
+        return;
+      }
+
+    // [400] 欄位未填寫正確
+      const { error: hotelError } = product_Validator.hotelSchemas.validate(hotel, {
+        abortEarly: false,
+        stripUnknown: true
+      });
+      if (hotelError) {
+        resStatus({
+          res: res,
+          status: 400,
+          message: '欄位未填寫正確',
+        });
+        return;
+      }      
+    }
+  }
+  
+  next();
+}
+
+// [PATCH] 50 : 管理者上架刊登旅遊項目
+async function patch_tourStatus(req, res, next) {
+  const { tour_ids, tour_status } = req.body;
+
+  // [400] 欄位未填寫正確
+    const { error } = product_Validator.patchTourProduct.validate({ tour_ids, tour_status }, {
+      abortEarly: false,
+      stripUnknown: true
+    });
+    if (error) {
+      resStatus({
+        res: res,
+        status: 400,
+        message: '欄位未填寫正確',
+      });
+      return;
+    }
+
+  // [404] 查無此項目
+  const dbResult = await pool.query(
+    'SELECT tour_id FROM public."tour" WHERE tour_id = ANY($1)',
+    [tour_ids]
+  );
+  const foundIds = dbResult.rows.map(row => row.tour_id);
+  const fail_ids = tour_ids.filter(id => !foundIds.includes(id));
+  if (fail_ids.length > 0) {
+    resStatus({
+      res: res,
+      status: 404,
+      message: '查無此項目'
+    });
+    return;
+  }
+
+  next();
+}
+
+// [DELETE] 51 : 管理者刪除旅遊項目
+async function delete_tourProduct(req, res, next) {
+  const { tour_ids } = req.body;
+
+  // [400] 欄位未填寫正確
+    const { error } = product_Validator.delete_tourProduct.validate( {tour_ids}, {
+      abortEarly: false,
+      stripUnknown: true
+    });
+    console.log(error)
+    if (error) {
+      resStatus({
+        res: res,
+        status: 400,
+        message: '欄位未填寫正確',
+      });
+      return;
+    }
+
+  // [404] 查無此項目
+  const dbResult = await pool.query(
+    'SELECT tour_id FROM public."tour" WHERE tour_id = ANY($1)',
+    [tour_ids]
+  );
+  const foundIds = dbResult.rows.map(row => row.tour_id);
+  const fail_ids = tour_ids.filter(id => !foundIds.includes(id));
+  if (fail_ids.length > 0) {
+    resStatus({
+      res: res,
+      status: 404,
+      message: '查無此項目'
+    });
+    return;
+  }
+
+  next();
+}
 
 module.exports = {
   get_tourData,
@@ -278,5 +533,11 @@ module.exports = {
   get_tourReview,
   get_tourHiddenPlay,
   post_Product,
+  patch_admin_tourDetail,
+  get_tourSearch,
+  get_admin_tourDetail,
+  patch_tourStatus,
+  delete_tourProduct
   productImageUpload
+
 };

@@ -798,10 +798,648 @@ async function post_admin_product(req, res, next) {
   }
 }
 
+//[POST] 46 : 管理者新增旅遊項目
+/*
+async function post_Touradd(req, res, next) {
+  try {
+    const { tour_product, travel, food, hotel } = req.body;
+
+    const tourConditions = [];
+    const valuesIndex = [];
+    const values = [];
+    let index = 1;
+
+    tourConditions.push(`"status"`);
+    valuesIndex.push(`$${index++}`);
+    values.push(1);
+    if (tour_product.item) {
+      tourConditions.push(`"item"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.item);
+    }
+    if (tour_product.type) {
+      tourConditions.push(`"type"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.type);
+    }
+    if (tour_product.title) {
+      tourConditions.push(`"title"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.title);
+    }
+    if (tour_product.subtitle) {
+      tourConditions.push(`"slogan"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.subtitle);
+    }
+    if (tour_product.start_date) {
+      tourConditions.push(`"tour_start_date"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.start_date);
+    }
+    if (tour_product.end_date) {
+      tourConditions.push(`"tour_end_date"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.end_date);
+    }
+    if (tour_product.duration) {
+      tourConditions.push(`"days"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.duration);
+    }
+    if (tour_product.price) {
+      tourConditions.push(`"price"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.price);
+    }
+    if (tour_product.location.country) {
+      tourConditions.push(`"country"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.location.country);
+    }
+    if (tour_product.location.region) {
+      tourConditions.push(`"region"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.location.region);
+    }
+    if (tour_product.address) {
+      tourConditions.push(`"address"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.address);
+    }
+    if (tour_product.map_url) {
+      tourConditions.push(`"google_map_url"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.map_url);
+    }
+    if (tour_product.calendar_url) {
+      tourConditions.push(`"calendar_url"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.calendar_url);
+    }
+    if (tour_product.tags.length > 0) {
+      const tags = tour_product.tags.slice(0, 3); // 只取前三個標籤
+      for (let i = 0; i < 3; i++) {
+        if (tags[i]) {
+          tourConditions.push(`"preference${i + 1}"`);
+          valuesIndex.push(`$${index++}`);
+          values.push(tags[i]);
+        } else {
+          console.log('缺少標籤 ${i + 1}');
+        }
+      }
+    }
+    if (tour_product.important_notice) {
+      tourConditions.push(`"notice"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.important_notice);
+    }
+    if (tour_product.description) {
+      tourConditions.push(`"description"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.description);
+    }
+    if (tour_product.cover_img_url) {
+      tourConditions.push(`"cover_image"`);
+      valuesIndex.push(`$${index++}`);
+      values.push(tour_product.cover_img_url);
+    }
+    if (tour_product.scenic_images.length > 0){
+      for (let i = 0; i < 6; i++) {
+        if (tour_product.scenic_images[i]) {
+          tourConditions.push(`"img${i + 1}"`);
+          valuesIndex.push(`$${index++}`);
+          values.push(tour_product.scenic_images[i].img_url);
+        } else {
+          console.log('缺少景點圖片 ${i + 1}');
+        }
+      }
+    }
+    if (tour_product.scenic_images.length > 0){
+      for (let i = 0; i < 6; i++) {
+        if (tour_product.scenic_images[i]) {
+          tourConditions.push(`"img${i + 1}_desc"`);
+          valuesIndex.push(`$${index++}`);
+          values.push(tour_product.scenic_images[i].description);
+        } else {
+          console.log('缺少景點圖片 ${i + 1}');
+        }
+      }
+    }
+
+    const valuesSQL = tourConditions.length ? `(${tourConditions.join(', ')})` : '';
+    const indexSQL = valuesIndex.length ? `(${valuesIndex.join(', ')})` : '';
+    const tourInsert = `
+      INSERT INTO public."tour" ${valuesSQL} 
+      VALUES ${indexSQL} RETURNING "tour_id"`;
+
+    const repo = await pool.query(tourInsert, values);
+    const tour_id = repo.rows[0].tour_id;
+
+    if(tour_product && travel){
+      console.log('travel:');
+
+      const travelInsert = `
+        INSERT INTO public."tour_detail"
+        (tour_id, feature_img1, feature_desc1, feature_img2, feature_desc2, feature_img3, feature_desc3, itinerary)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
+      const travelValues = [ 
+        tour_id,
+        travel.features[0].img_url, travel.features[0].description, 
+        travel.features[1].img_url, travel.features[1].description, 
+        travel.features[2].img_url, travel.features[2].description, 
+        travel.itinerary ];
+
+      await pool.query(travelInsert, travelValues);
+    }
+    if(tour_product && food){
+      console.log('food');
+
+      const foodInsert = `
+        INSERT INTO public."restaurant"
+        (tour_id, reservation_limit, website_info, website_url)
+        VALUES ($1, $2, $3, $4) RETURNING "restaurant_id"`;
+      const foodValues = [ 
+        tour_id,
+        food.max_people_per_day, food.description, food.link_url
+        ];
+      const foodInsertRepo = await pool.query(foodInsert, foodValues);
+      const restaurant_id = foodInsertRepo.rows[0].restaurant_id;
+      if(foodInsertRepo.rowCount === 0) {
+        return resStatus({
+          message: '新增旅遊項目失敗，請檢查輸入資料是否正確',
+        });
+      }
+
+      const times = Object.entries(food.open_times).flatMap(([day, times]) =>
+        times.map(time => ({ day, time }))
+      );
+      const businessInsert = `
+        INSERT INTO public."restaurant_business" 
+        (restaurant_id, week, business_hours)
+        VALUES ($1, $2, $3)`;
+      const businessRepo = times.map( (time) => { 
+        pool.query(
+        businessInsert,
+        [restaurant_id, time.day, time.time]
+      )});
+      await Promise.all(businessRepo);
+    }
+    if(tour_product && hotel){
+      console.log('HHhotel:');
+
+      const hotelInsert = `
+        INSERT INTO public."hotel"
+        (tour_id, facility_desc, food_desc, room_desc, leisure_desc, traffic_desc, other_desc)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "hotel_id"`;
+      const hotelValues = [ 
+        tour_id,
+        (hotel.services.basic || []).join(', '),
+        (hotel.services.dining || []).join(', '),
+        (hotel.services.room || []).join(', '),
+        (hotel.services.leisure || []).join(', '),
+        (hotel.services.transport || []).join(', '),
+        (hotel.services.others || []).join(', ')
+        ];
+      const hotelInsertRepo = await pool.query(hotelInsert, hotelValues);
+      const hotel_id = hotelInsertRepo.rows[0].hotel_id;
+
+      const hotelRoomInsert = `
+        INSERT INTO public."hotel_room"
+        (hotel_id, title, capacity, room_count, image, image_desc)
+        VALUES ($1, $2, $3, $4, $5, $6)`;
+      const hotelRoomInsertRepo = hotel.rooms.map( (room) => { pool.query(
+        hotelRoomInsert,
+        [hotel_id, room.name, room.quantity, room.capacity, room.image_url, room.description]
+      )});
+      await Promise.all(hotelRoomInsertRepo);
+    }
+
+    resStatus({
+      res: res,
+      status: 200,
+      message: '新增成功',
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}*/
+
+// [GET] 47 : 管理者查看刊登的旅遊項目
+async function get_tourSearch(req, res, next) {
+  try {
+    const { status, country, region, create_date, keyword, page = 1, limit = 10, lang } = req.query;
+    const conditions =[];
+    const values = [];
+    let index = 1;
+    if(status) {
+      conditions.push(`"上下架狀態" = $${index++}`);
+      values.push(status);
+    }
+    if(country) {
+      conditions.push(`"所屬國家" = $${index++}`);
+      values.push(country);
+    }
+    if(region) { 
+      conditions.push(`"所屬地區" = $${index++}`);
+      values.push(region);
+    }
+    if(create_date) {
+      conditions.push(`"建立時間" = $${index++}`);  
+      values.push(create_date);
+    }
+    if(keyword) {
+      conditions.push(`("旅遊名稱" ILIKE $${index} OR "旅遊描述" ILIKE $${index})`);
+      values.push(`%${keyword}%`);
+      index++;
+    }
+
+    // 分頁設定
+    const offset = (Number(page) - 1) * Number(limit);
+    values.push(limit);
+    values.push(offset);
+    const whereSQL = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const select = '旅遊編號, 上下架狀態, 旅遊名稱, 旅遊描述, 所屬國家, 所屬地區, 建立時間, 價錢, "旅遊代表圖 Url"';
+
+    const query = `
+      SELECT ${select} FROM public."tour_base"
+      ${whereSQL}
+      ORDER BY "建立時間" DESC
+      LIMIT $${index++}
+      OFFSET $${index}
+    `;
+    const Repo = await pool.query(query, values);
+
+    resStatus({
+      res: res,
+      status: 200,
+      message: '查詢成功',
+      dbdata: Repo.rows
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
+// [GET] 48 : 管理者查看旅遊項目詳細內容
+async function get_tourDetail(req, res, next) {
+  try {
+    const Repo = {};
+    const { tour_id } = req.params;
+
+    const tourDetailsRepo = await pool.query(
+      'SELECT * from public."tour" WHERE "tour_id" = $1',
+      [tour_id]
+    );
+    Repo.tour_product = tourDetailsRepo.rows[0] || null;
+
+//travel
+    const travelRepo = await pool.query(
+      'SELECT * FROM public."tour_detail" WHERE "tour_id" = $1',  
+      [tour_id]
+    );
+    if( travelRepo.rows.length > 0) {
+       Repo.travel = {
+        features: [
+          {
+            img_url: travelRepo.rows[0].feature_img1,
+            description: travelRepo.rows[0].feature_desc1
+          },
+          {
+            img_url: travelRepo.rows[0].feature_img2,
+            description: travelRepo.rows[0].feature_desc2
+          },
+          {
+            img_url: travelRepo.rows[0].feature_img3,
+            description: travelRepo.rows[0].feature_desc3
+          }
+        ],
+        itinerary: travelRepo.rows[0].itinerary || ''
+       };
+    }
+
+//restaurant
+    const restaurantRepo = await pool.query(
+      'SELECT * FROM public."restaurant" WHERE "tour_id" = $1',  
+      [tour_id]
+    );
+    if( restaurantRepo.rows.length > 0) {
+      Repo.food = {
+        max_people_per_day: restaurantRepo.rows[0].reservation_limit,
+        description: restaurantRepo.rows[0].website_info,
+        link_url: restaurantRepo.rows[0].web_url,
+        open_times: {}
+      }
+
+      const restaurant_id = restaurantRepo.rows[0].restaurant_id;
+      const businessRepo = await pool.query(
+        'SELECT * FROM public."restaurant_business" WHERE "restaurant_id" = $1',  
+        [restaurant_id]
+      );
+      businessRepo.rows.forEach(row => {
+        const day = row.week;         
+        const time = row.business_hours;
+
+        if (!Repo.food.open_times[day]) {
+          Repo.food.open_times[day] = [];
+        }
+
+        Repo.food.open_times[day].push(time);
+      });
+    }
+
+//hotel
+    const hotelSQL = 'hotel_id, facility_desc, food_desc, room_desc, leisure_desc, traffic_desc, other_desc';
+    const hotelRepo = await pool.query(
+      `SELECT ${hotelSQL} FROM public."hotel" WHERE "tour_id" = $1`,  
+      [tour_id]
+    );
+    if( hotelRepo.rows.length > 0) {
+      Repo.hotel = {
+        services: {
+          facility_desc: hotelRepo.rows[0].facility_desc,
+          food_desc: hotelRepo.rows[0].food_desc,
+          room_desc: hotelRepo.rows[0].room_desc,
+          leisure_desc: hotelRepo.rows[0].leisure_desc,
+          traffic_desc: hotelRepo.rows[0].traffic_desc,
+          other_desc: hotelRepo.rows[0].other_desc
+        },
+        rooms: []
+      };
+
+      const hotel_id = hotelRepo.rows[0].hotel_id;
+      const hotelroomSQL = 'title, capacity, room_count, image, image_desc';
+      const hotelroomRepo = await pool.query(
+      `SELECT ${hotelroomSQL} FROM public."hotel_room" WHERE "hotel_id" = $1`,  
+      [hotel_id]);
+      Repo.hotel.rooms = hotelroomRepo.rows;
+    }
+
+    resStatus({
+      res: res,
+      status: 200,
+      message: '查詢成功',
+      dbdata: Repo      
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
+// [PATCH] 49 : 管理者修改旅遊項目細項內容
+async function patch_tourInfo(req, res, next){
+  try{
+    const { tour_product, travel, food, hotel } = req.body;
+    const { tour_id } = req.params;
+    let updateStatus = 0;
+
+    const setValuesSQL = `
+      type = $2, item = $3, status = $4, title = $5, 
+      slogan = $6, tour_start_date = $7, tour_end_date = $8, 
+      days = $9, price = $10, country = $11, region = $12,
+      address = $13, google_map_url = $14, calendar_url = $15,
+      preference1 = $16, preference2 = $17, preference3 = $18,
+      notice = $19, description = $20, cover_image = $21,
+      img1 = $22, img1_desc = $23, img2 = $24, img2_desc = $25,
+      img3 = $26, img3_desc = $27, img4 = $28, img4_desc = $29,
+      img5 = $30, img5_desc = $31, img6 = $32, img6_desc = $33
+    `;
+    const setValues = [
+      tour_product.type, tour_product.item, '2', tour_product.title,
+      tour_product.subtitle, tour_product.start_date || null, tour_product.end_date || null,
+      tour_product.duration || null, tour_product.price, tour_product.location.country,
+      tour_product.location.region, tour_product.address, tour_product.map_url,
+      tour_product.calendar_url, tour_product.tags[0] || null, tour_product.tags[1] || null,
+      tour_product.tags[2] || null, tour_product.important_notice || null, tour_product.description,
+      tour_product.cover_img_url,
+      tour_product.scenic_images[0]?.img_url || null, tour_product.scenic_images[0]?.description || null,
+      tour_product.scenic_images[1]?.img_url || null, tour_product.scenic_images[1]?.description || null,
+      tour_product.scenic_images[2]?.img_url || null, tour_product.scenic_images[2]?.description || null,
+      tour_product.scenic_images[3]?.img_url || null, tour_product.scenic_images[3]?.description || null,
+      tour_product.scenic_images[4]?.img_url || null, tour_product.scenic_images[4]?.description || null,
+      tour_product.scenic_images[5]?.img_url || null, tour_product.scenic_images[5]?.description || null
+    ];
+    const updatePromises = await pool.query(
+      `UPDATE public."tour" SET ${setValuesSQL} WHERE tour_id = $1
+      RETURNING tour_id`,
+      [tour_id, ...setValues]
+    );
+    if(updatePromises.rowCount > 0) {
+      updateStatus = 1;
+    }
+
+    if(tour_product && travel){
+      const travelSQL = `feature_img1 = $2, feature_desc1 = $3,
+        feature_img2 = $4, feature_desc2 = $5, feature_img3 = $6, 
+        feature_desc3 = $7, itinerary = $8`;
+      const travelValues = [
+        travel.features[0].img_url, travel.features[0].description,
+        travel.features[1].img_url, travel.features[1].description,
+        travel.features[2].img_url, travel.features[2].description,
+        travel.itinerary || null
+      ];
+      const updatePromises = await pool.query(
+        `UPDATE public."tour_detail" SET ${travelSQL} WHERE tour_id = $1
+        RETURNING tour_id`,
+        [tour_id, ...travelValues]
+      );
+      if(updatePromises.rowCount > 0) {
+        updateStatus = 1;
+      }
+    }
+
+    if(tour_product && food){
+      const foodSQL = `reservation_limit = $2, website_info = $3, website_url = $4`;
+      const foodValues = [
+        food.max_people_per_day, food.description, food.link_url
+      ];
+      const updatePromises = await pool.query(
+        `UPDATE public."restaurant" SET ${foodSQL} WHERE tour_id = $1
+        RETURNING restaurant_id`,
+        [tour_id, ...foodValues]
+      );
+      if(updatePromises.rowCount === 0) {
+        updateStatus = 0;
+      }
+
+      const restaurant_id = updatePromises.rows[0].restaurant_id;
+      const businessSQL = `week = $2, business_hours = $3`;
+      const times = Object.entries(food.open_times).flatMap(([day, times]) =>
+        times.map(time => ({ day, time }))
+      );
+      const businessRepo = times.map( (time) => { pool.query(
+          `UPDATE public."restaurant_business" SET ${businessSQL} WHERE restaurant_id = $1
+          AND week = $2`,
+          [restaurant_id, time.day, time.time]
+      )})
+    }
+
+    if(tour_product && hotel){
+      const servicesSQL = `
+        facility_desc = $2, food_desc = $3, room_desc = $4,
+        leisure_desc = $5, traffic_desc = $6, other_desc = $7`;
+      const servicesValues = [
+        (hotel.services.basic || []).join(', '),
+        (hotel.services.dining || []).join(', '),
+        (hotel.services.room || []).join(', '),
+        (hotel.services.leisure || []).join(', '),
+        (hotel.services.transport || []).join(', '),
+        (hotel.services.others || []).join(', ')
+      ];
+      const updatePromises = await pool.query(
+        `UPDATE public."hotel" SET ${servicesSQL} WHERE tour_id = $1
+        RETURNING hotel_id`,
+        [tour_id, ...servicesValues]
+      );
+      if(updatePromises.rowCount === 0) {
+        updateStatus = 0;
+      }
+
+      const hotel_id = updatePromises.rows[0].hotel_id;
+      const roomSQL = `title = $2, capacity = $3, room_count = $4, image = $5, image_desc = $6`;
+      const roomUpdateRepo = hotel.rooms.map( (room) => { pool.query(
+      `UPDATE public."hotel_room" SET ${roomSQL} WHERE
+      hotel_id = $1`,
+      [hotel_id, room.name, room.quantity, room.capacity, room.image_url, room.description]
+      )});
+      await Promise.all(roomUpdateRepo);
+      if(roomUpdateRepo.rowCount > 0) {
+        updateStatus = 1;
+      }
+    }
+
+    if(updateStatus === 1) {
+      resStatus({
+        res: res,
+        status: 200,
+        message: '上架成功',
+      });
+    }
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
+// [PATCH] 50 : 管理者上架刊登旅遊項目
+async function patch_tourStatus(req, res, next){
+  try{
+    const { tour_ids, tour_status } = req.body;
+
+    const updatePromises = tour_ids.map((tour_id) => pool.query(
+        'UPDATE public."tour" SET status = $1 WHERE tour_id = $2',
+        [tour_status, tour_id]
+      )
+    );
+    await Promise.all(updatePromises);
+
+    resStatus({
+      res: res,
+      status: 200,
+      message: '上架成功',
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
+// [DELETE] 51 : 管理者刪除旅遊項目
+async function delete_tourProduct(req, res, next) {
+  try {
+    const { tour_ids } = req.body;
+
+    const client = await pool.connect();
+    for (const tour_id of tour_ids) {
+
+      const tourDetail_id = await client.query(
+        'SELECT tour_detail_id FROM public."tour_detail" WHERE tour_id = $1',
+        [tour_id]
+      );
+      if(tourDetail_id.rowCount > 0){
+        await client.query(
+          'DELETE FROM public."tour_detail" WHERE tour_id = $1',
+          [tour_id]
+        );
+        await client.query(
+          'DELETE FROM public."tour" WHERE "tour_id" = $1',
+          [tour_id]
+        );
+      }
+
+      const restaurant_id = await client.query(
+        'SELECT restaurant_id FROM public."restaurant" WHERE tour_id = $1',
+        [tour_id]
+      );
+      if(restaurant_id.rowCount > 0){
+        await client.query(
+          'DELETE FROM public."restaurant_business" WHERE restaurant_id = $1',
+          [restaurant_id.rows[0]?.restaurant_id]
+        );
+        await client.query(
+          'DELETE FROM public."restaurant_menu" WHERE restaurant_id = $1',
+          [restaurant_id.rows[0]?.restaurant_id]
+        );
+        await client.query(
+          'DELETE FROM public."restaurant" WHERE tour_id = $1',
+          [tour_id]
+        );
+        await client.query(
+          'DELETE FROM public."tour" WHERE "tour_id" = $1',
+          [tour_id]
+        );
+      }
+      
+      const hotel_id = await client.query(
+        'SELECT hotel_id FROM public."hotel" WHERE tour_id = $1',
+        [tour_id]
+      );
+      if(hotel_id.rowCount > 0){
+        await client.query(
+          'DELETE FROM public."hotel_room" WHERE hotel_id = $1',
+          [hotel_id.rows[0]?.hotel_id]
+        );
+        await client.query(
+          'DELETE FROM public."hotel" WHERE tour_id = $1',
+          [tour_id]
+        );
+        await client.query(
+          'DELETE FROM public."tour" WHERE "tour_id" = $1',
+          [tour_id]
+        );
+      }
+    }
+    
+    resStatus({
+      res: res,
+      status: 200,
+      message: '刪除成功',
+    });
+  } catch (error) {
+    // [HTTP 500] 伺服器異常
+    console.error('❌ 伺服器內部錯誤:', error);
+    next(error);
+  }
+}
+
 module.exports = {
   get_tourData,
   get_tourDetails,
   get_tourReview,
   get_tourHiddenPlay,
   post_admin_product,
+  // post_Touradd,
+  get_tourSearch,
+  get_tourDetail,
+  patch_tourInfo,
+  patch_tourStatus,
+  delete_tourProduct, 
 };
