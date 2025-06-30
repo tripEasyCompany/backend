@@ -9,7 +9,7 @@ const auth = require('../middlewares/auth');
 const authRole = require('../middlewares/authorizeRoles');
 
 // [POST] 編號 46 : 管理者新增旅遊項目
-router.post('/add', auth, authRole('admin'), mw.post_Product, controller.post_admin_product);
+router.post('/add', auth, authRole('admin'), mw.productImageUpload(), mw.post_Product, controller.post_admin_product);
 
 // [GET] 編號 22 : 使用者查詢旅遊項目
 router.get('/', auth_not_manda, mw.get_tourData, controller.get_tourData);
