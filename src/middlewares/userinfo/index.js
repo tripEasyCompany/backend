@@ -133,53 +133,65 @@ async function postuserLoginGoogle(req, res, next) {
 
   // [HTTP 400] 資料錯誤
   if (!code) {
-    resStatus({
+    return resStatus({ // 加上 return 確保函式在此處終止
       res: res,
       status: 400,
       message: 'Code 欄位未填寫正確',
     });
-    return;
   }
 
-  // 1. 用 code 換 access_token
-  const tokenRes = await axios.post(
-    'https://oauth2.googleapis.com/token',
-    qs.stringify({
-      code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-      grant_type: 'authorization_code',
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    }
-  );
+  try { // <--- 增加 try 區塊
+    // 1. 用 code 換 access_token
+    const tokenRes = await axios.post(
+      'https://oauth2.googleapis.com/token',
+      qs.stringify({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        grant_type: 'authorization_code',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
 
-  // Step 2. 拿 user info
-  const { access_token } = tokenRes.data;
-  const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${access_token}` },
-  });
-
-  const googleUser = userInfoRes.data;
-  // [HTTP 400] Google 帳號資訊異常
-  if (!googleUser || !googleUser.email) {
-    resStatus({
-      res: res,
-      status: 400,
-      message: 'Google 帳號資訊異常，無法取得 email',
+    // Step 2. 拿 user info
+    const { access_token } = tokenRes.data;
+    const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
     });
-    return;
-  }
 
-  req.user = {
-    googleUser,
-    access_token,
-  };
-  next();
+    const googleUser = userInfoRes.data;
+    
+    // [HTTP 400] Google 帳號資訊異常
+    if (!googleUser || !googleUser.email) {
+      return resStatus({
+        res: res,
+        status: 400,
+        message: 'Google 帳號資訊異常，無法取得 email',
+      });
+    }
+
+    req.user = {
+      googleUser,
+      access_token,
+    };
+    next();
+
+  } catch (error) { // <--- 增加 catch 區塊
+    // 在後端控制台印出詳細錯誤，方便除錯
+    console.error('❌ Google OAuth 中間件錯誤:', error.response ? error.response.data : error.message);
+
+    // 回傳一個更友善的錯誤訊息給前端，而不是讓伺服器崩潰
+    return resStatus({
+      res,
+      status: 401, // 401 Unauthorized 更適合表示驗證失敗
+      message: 'Google 驗證失敗，請檢查您的授權碼或後端憑證設定。',
+    });
+  }
 }
 
 // [POST] 編號 04 : 使用者登入 - FB 登入

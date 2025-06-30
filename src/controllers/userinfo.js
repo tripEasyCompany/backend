@@ -131,84 +131,113 @@ async function post_user_LoginEmail(req, res, next) {
 
 // [POST] 編號 03 : 使用者登入 - Google 登入
 async function post_user_LoginGoogle(req, res, next) {
-  const { code } = req.body;
+  // 從中介軟體取得已驗證的 Google 使用者資訊和權杖
   const { googleUser, access_token } = req.user;
-  const email = googleUser.email;
+  const { email, name, picture } = googleUser;
+  // Google 的使用者唯一 ID，用來存儲在 socialLogin 表中
+  const provider_id = googleUser.sub;
 
   let client;
   try {
-    const emailData = await pool.query('SELECT * FROM public."user" where email = $1', [email]);
-    const userData = emailData.rows[0];
+    client = await pool.connect();
+    await client.query('BEGIN'); // 開始資料庫交易
 
-    // 第一次用第三方登入進行登入
-    if (!userData) {
-      const salt = await bcrypt.genSalt(10);
-      const databasePassword = await bcrypt.hash('Aa123456', salt);
-
-      client = await pool.connect();
-      // 上傳數據
-      await client.query('BEGIN');
-
-      const userResult = await client.query(
-        'INSERT INTO public."user" (name, email, role, password,avatar_url,login_method) VALUES ($1, $2, $3, $4,$5,$6) RETURNING *',
-        [googleUser.name, email, 'User', databasePassword, googleUser.picture, 2]
+    // 1. 檢查使用者是否已存在於資料庫中
+    const { rows: existingUsers } = await client.query('SELECT * FROM public."user" WHERE email = $1', [email]);
+    let user = existingUsers[0];
+    
+    // 2. 根據使用者是否存在，執行不同邏輯
+    if (user) {
+      // 2a. 如果使用者已存在（例如用 Email 註冊過）
+      // 更新其頭像和登入方式，並確保 socialLogin 紀錄存在
+      const updatedUserResult = await client.query(
+        `UPDATE public."user" 
+         SET avatar_url = $1, login_method = 2, updated_at = NOW() 
+         WHERE user_id = $2 RETURNING *`,
+        [picture, user.user_id]
       );
-      const user = userResult.rows[0];
+      user = updatedUserResult.rows[0];
 
+      // 使用 ON CONFLICT 語法來安全地插入或更新 socialLogin 紀錄
+      // 這能處理使用者第一次用 Google 登入，或更新已存在的 Google 登入權杖
       await client.query(
-        'INSERT INTO public."user_level" (user_id,level,name,badge_url,travel_point) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        `INSERT INTO public."socialLogin" (user_id, provider_method, provider_id, provider_token) 
+         VALUES ($1, 'google', $2, $3) 
+         ON CONFLICT (user_id, provider_method) DO UPDATE SET provider_id = $2, provider_token = $3, updated_at = NOW()`,
+        [user.user_id, provider_id, access_token]
+      );
+
+    } else {
+      // 2b. 如果使用者不存在，執行完整的全新註冊流程
+      const salt = await bcrypt.genSalt(10);
+      // 為第三方登入的用戶設定一個高強度的預設密碼
+      const databasePassword = await bcrypt.hash(process.env.DEFAULT_OAUTH_PASSWORD || 'DefaultPassword123!', salt); 
+
+      // 插入新使用者，並給予預設的偏好設定 (例如 1, 2, 3)
+      const newUserResult = await client.query(
+        'INSERT INTO public."user" (name, email, role, password, avatar_url, login_method, preference1, preference2, preference3) VALUES ($1, $2, $3, $4, $5, 2, 1, 2, 3) RETURNING *',
+        [name, email, 'User', databasePassword, picture]
+      );
+      user = newUserResult.rows[0];
+
+      // 為新使用者建立相關的初始紀錄
+      await client.query(
+        'INSERT INTO public."user_level" (user_id,level,name,badge_url,travel_point) VALUES ($1, $2, $3, $4, $5)',
         [user.user_id, 'Level 1', '初心旅人', 'https://example.com/badges/level1.png', 0]
       );
-
       await client.query(
-        'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3) RETURNING *',
+        'INSERT INTO public."point_record" (user_id,type,point) VALUES ($1, $2, $3)',
         [user.user_id, '新增', 0]
       );
-
       await client.query(
-        'INSERT INTO public."socialLogin" (user_id, provider_method, provider_id, provider_token) VALUES ($1, $2, $3, $4) RETURNING *',
-        [user.user_id, 'google', code, access_token]
+        'INSERT INTO public."socialLogin" (user_id, provider_method, provider_id, provider_token) VALUES ($1, $2, $3, $4)',
+        [user.user_id, 'google', provider_id, access_token]
       );
-
-      await client.query('COMMIT');
     }
+    
+    // 3. 提交資料庫交易
+    await client.query('COMMIT');
 
-    // 簽發 JWT（依你專案調整）
-    const user = await pool.query('SELECT * FROM public."user" where email = $1', [email]);
-    const level = await pool.query('SELECT * FROM public."user_level" where user_id = $1', [
-      user.rows[0].user_id,
+    // 4. 取得使用者的等級資訊
+    const levelResult = await pool.query('SELECT * FROM public."user_level" where user_id = $1', [
+      user.user_id,
     ]);
-    const payload = { id: user.rows[0].user_id, role: user.rows[0].role };
+    const level = levelResult.rows[0];
+
+    // 5. 簽發 JWT 權杖並回傳成功的響應
+    const payload = { id: user.user_id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_DAY || '7d',
     });
 
-    resStatus({
+    return resStatus({
       res: res,
       status: 200,
       message: '登入成功',
       dbdata: {
         token: token,
         user: {
-          id: user.rows[0].user_id,
-          name: user.rows[0].name,
-          email: user.rows[0].email,
-          avatar_url: googleUser.picture,
+          id: user.user_id,
+          name: user.name,
+          email: user.email,
+          avatar_url: user.avatar_url,
         },
         level: {
-          level: level.rows[0].level,
-          name: level.rows[0].name,
-          points: level.rows[0].travel_point,
-          badge_url: level.rows[0].badge_url,
+          level: level.level,
+          name: level.name,
+          points: level.travel_point,
+          badge_url: level.badge_url,
         },
       },
     });
+
   } catch (error) {
-    // [HTTP 500] 伺服器異常
+    // 如果過程中發生任何錯誤，則回滾資料庫交易
     if (client) await client.query('ROLLBACK');
-    console.error('❌ 伺服器內部錯誤:', error);
-    next(error);
+    console.error('❌ Google 登入控制器錯誤:', error);
+    next(error); // 將錯誤傳遞給 Express 的錯誤處理中介軟體
   } finally {
+    // 無論成功或失敗，最後都釋放資料庫連線
     if (client) client.release();
   }
 }
