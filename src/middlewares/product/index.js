@@ -537,7 +537,6 @@ module.exports = {
   get_tourSearch,
   get_admin_tourDetail,
   patch_tourStatus,
-  delete_tourProduct
-  productImageUpload
-
+  delete_tourProduct,
+  productImageUpload,
 };
