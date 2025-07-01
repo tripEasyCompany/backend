@@ -668,7 +668,7 @@ module.exports = {
   travelSchema,
   foodSchema,
   hotelSchemas,
-  delete_tourProduct
+  delete_tourProduct,
   // 新增用
   createProductSchema,                    // 原始版本（當需要直接傳遞 URL 時使用）
   createProductSchemaWithoutImageUrls,    // Firebase 檔案上傳流程使用（No.46）
